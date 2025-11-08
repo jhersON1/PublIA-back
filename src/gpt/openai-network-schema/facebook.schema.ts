@@ -1,7 +1,7 @@
 export const facebookSchema = {
   type: "object",
   properties: {
-    platform: { const: "facebook" },
+    platform: { type: "string", const: "facebook" },
     text: { type: "string", minLength: 1 },
     hashtags: {
       type: "array",

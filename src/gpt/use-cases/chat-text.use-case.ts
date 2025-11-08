@@ -9,28 +9,38 @@ interface Options {
 
 export type SocialPostsResponse = {
   message: string;
-  networks: Array<
-    | {
+  networks: {
+    facebook: {
       platform: "facebook";
       text: string;
       hashtags: string[];
       character_count: number;
-    }
-    | {
+    };
+    instagram: {
       platform: "instagram";
       text: string;
       hashtags: string[];
       character_count: number;
       suggested_image_prompt: string;
-    }
-    | {
+    };
+    linkedin: {
       platform: "linkedin";
       text: string;
       hashtags: string[];
       character_count: number;
       tone: "professional";
-    }
-  >;
+    };
+  };
+};
+
+const extractJsonPayload = (response: OpenAI.Chat.Completions.ChatCompletion): string => {
+  const content = response.choices[0]?.message?.content?.trim();
+  
+  if (!content) {
+    throw new Error("La respuesta de OpenAI llegó vacía (sin contenido).");
+  }
+
+  return content;
 };
 
 export const chatTextUseCase = async (
@@ -52,36 +62,34 @@ Instrucciones:
 - Devuelve SOLO JSON válido que cumpla el schema. No incluyas nada fuera del JSON.
 `.trim();
 
-  const response = await openai.responses.create({
-    model: "gpt-5-mini",
-    input: [
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
       { role: "system", content: system },
       {
         role: "user",
-        content: [
-          {
-            type: "input_text",
-            text: `Brief: ${prompt}. Devuelve exactamente 3 items (facebook, instagram, linkedin) en "networks".`
-          }
-        ]
+        content: `Brief: ${prompt}. Devuelve "networks" como un objeto con las claves "facebook", "instagram" y "linkedin".`
       }
     ],
-    text: {
-      format: {
-        type: "json_schema",
+    response_format: {
+      type: "json_schema",
+      json_schema: {
         name: "SocialPostsResponse",
         strict: true,
         schema: socialPostsSchema
       }
     },
-    // Opcionales:
-    // verbosity: "medium",
-    // reasoning_effort: "medium",
-    temperature: 0.5,
-    max_output_tokens: 1200
+    max_tokens: 1200,
+    temperature: 0.7
   });
 
-  // Fallback seguro:
-  const text = response.output_text ?? "{}";
-  return JSON.parse(text) as SocialPostsResponse;
+  const rawJson = extractJsonPayload(response);
+
+  try {
+    return JSON.parse(rawJson) as SocialPostsResponse;
+  } catch (error) {
+    throw new Error(
+      `No se pudo parsear la respuesta JSON de OpenAI: ${(error as Error).message}`
+    );
+  }
 };

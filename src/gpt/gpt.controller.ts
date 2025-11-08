@@ -9,8 +9,8 @@ export class GptController {
 
   @Post('chat-text')
   chatText (
-    @Body() orthographyDto: ChatTextDto
+    @Body() chatTextDto: ChatTextDto
   ) {
-    return this.gptService.chatText(orthographyDto);
+    return this.gptService.chatText(chatTextDto);
   }
 }

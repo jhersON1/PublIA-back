@@ -1,7 +1,7 @@
 export const instagramSchema = {
   type: "object",
   properties: {
-    platform: { const: "instagram" },
+    platform: { type: "string", const: "instagram" },
     text: { type: "string", minLength: 1 },
     hashtags: {
       type: "array",
