@@ -1,14 +1,12 @@
 import OpenAI from "openai";
-import { socialPostsSchema } from "../openai-network-schema";
-
+import { generatePostsSchema } from "../openai-network-schema";
 
 interface Options {
-  prompt: string;        // brief/idea base
-  locale?: string;       // ej: "es-ES" (opcional)
+  prompt: string;
+  locale?: string;
 }
 
-export type SocialPostsResponse = {
-  message: string;
+export type GeneratePostsResponse = {
   networks: {
     facebook: {
       platform: "facebook";
@@ -33,8 +31,8 @@ export type SocialPostsResponse = {
   };
 };
 
-const extractJsonPayload = (response: OpenAI.Chat.Completions.ChatCompletion): string => {
-  const content = response.choices[0]?.message?.content?.trim();
+const extractJsonPayload = (response: any): string => {
+  const content = response.output_text?.trim();
   
   if (!content) {
     throw new Error("La respuesta de OpenAI llegó vacía (sin contenido).");
@@ -43,15 +41,15 @@ const extractJsonPayload = (response: OpenAI.Chat.Completions.ChatCompletion): s
   return content;
 };
 
-export const chatTextUseCase = async (
+export const generatePostsUseCase = async (
   openai: OpenAI,
   { prompt, locale = "es-ES" }: Options
-): Promise<SocialPostsResponse> => {
-  const system = `
+): Promise<GeneratePostsResponse> => {
+  const instructions = `
 Eres un redactor de social media senior. Escribe SIEMPRE en ${locale}.
-Genera publicaciones para Facebook, Instagram y LinkedIn a partir del brief.
+Genera publicaciones para Facebook, Instagram y LinkedIn a partir del brief proporcionado.
 
-Reglas por red (según la tabla):
+Reglas por red:
 - Facebook: casual/formal; emojis OK; hashtags opcionales; texto largo permitido.
 - Instagram: visual/casual; emojis; hashtags IMPORTANTES y al final; ≤ 2200 chars; incluir "suggested_image_prompt".
 - LinkedIn: profesional/corporativo; pocos o ningún emoji; hashtags moderados; ≤ 3000 chars.
@@ -62,31 +60,25 @@ Instrucciones:
 - Devuelve SOLO JSON válido que cumpla el schema. No incluyas nada fuera del JSON.
 `.trim();
 
-  const response = await openai.chat.completions.create({
+  const response = await openai.responses.create({
     model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: system },
-      {
-        role: "user",
-        content: `Brief: ${prompt}. Devuelve "networks" como un objeto con las claves "facebook", "instagram" y "linkedin".`
-      }
-    ],
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "SocialPostsResponse",
+    instructions: instructions,
+    input: `Brief: ${prompt}. Genera publicaciones optimizadas para cada red social.`,
+    text: {
+      format: {
+        type: "json_schema",
+        name: "GeneratePostsResponse",
         strict: true,
-        schema: socialPostsSchema
+        schema: generatePostsSchema
       }
     },
-    max_tokens: 1200,
-    temperature: 0.7
+    max_output_tokens: 1200
   });
 
   const rawJson = extractJsonPayload(response);
 
   try {
-    return JSON.parse(rawJson) as SocialPostsResponse;
+    return JSON.parse(rawJson) as GeneratePostsResponse;
   } catch (error) {
     throw new Error(
       `No se pudo parsear la respuesta JSON de OpenAI: ${(error as Error).message}`

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ChatTextDto } from './dto';
-import { chatTextUseCase } from './use-cases';
+import { ChatTextDto, GeneratePostsDto } from './dto';
+import { chatUseCase, generatePostsUseCase } from './use-cases';
 import OpenAI from 'openai';
 
 
@@ -16,9 +16,15 @@ export class GptService {
     });
   }
 
-  async chatText(chatTextDto: ChatTextDto) {
-    return await chatTextUseCase(this.openai, {
+  async chat(chatTextDto: ChatTextDto) {
+    return await chatUseCase(this.openai, {
       prompt: chatTextDto.prompt
+    });
+  }
+
+  async generatePosts(generatePostsDto: GeneratePostsDto) {
+    return await generatePostsUseCase(this.openai, {
+      prompt: generatePostsDto.prompt
     });
   }
 }

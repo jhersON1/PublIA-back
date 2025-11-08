@@ -1,16 +1,23 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { GptService } from './gpt.service';
-import { ChatTextDto } from './dto';
+import { ChatTextDto, GeneratePostsDto } from './dto';
 
 
 @Controller('gpt')
 export class GptController {
   constructor(private readonly gptService: GptService) {}
 
-  @Post('chat-text')
-  chatText (
+  @Post('chat')
+  chat (
     @Body() chatTextDto: ChatTextDto
   ) {
-    return this.gptService.chatText(chatTextDto);
+    return this.gptService.chat(chatTextDto);
+  }
+
+  @Post('generate-posts')
+  generatePosts (
+    @Body() generatePostsDto: GeneratePostsDto
+  ) {
+    return this.gptService.generatePosts(generatePostsDto);
   }
 }
