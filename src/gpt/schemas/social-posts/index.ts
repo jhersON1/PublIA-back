@@ -1,6 +1,6 @@
 import { facebookSchema } from "./facebook.schema";
 import { instagramSchema } from "./instagram.schema";
-import { linkedinSchema } from "./linkedln.schema";
+import { linkedinSchema } from "./linkedin.schema";
 
 export const generatePostsSchema = {
   type: "object",
@@ -20,4 +20,4 @@ export const generatePostsSchema = {
   additionalProperties: false
 } as const;
 
-export { chatResponseSchema } from "./chat-response.schema";
+export { facebookSchema, instagramSchema, linkedinSchema };

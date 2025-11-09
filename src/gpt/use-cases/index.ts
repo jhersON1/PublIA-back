@@ -1,2 +1,2 @@
-export * from './chat.use-case';
-export * from './generate-posts.use-case';
+export * from "./chat/chat.use-case";
+export * from "./generate-posts/generate-posts.use-case";

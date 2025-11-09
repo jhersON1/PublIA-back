@@ -1,29 +1,18 @@
 import OpenAI from "openai";
-import { getChatInstruction } from "./instructions";
-import { GptExceptionHandler } from "../exceptions/gpt.exceptions";
-import { chatResponseSchema } from "../openai-network-schema";
-
-interface Options {
-  prompt: string;
-  locale?: string;
-  previousResponseId?: string;
-}
-
-export type ChatResponse = {
-  message: string;
-  context: string;
-  responseId: string;
-};
+import { buildChatPrompt } from "../../prompts/chat.prompt";
+import { chatResponseSchema } from "../../schemas";
+import { extractOutputText } from "../../utils";
+import { GptExceptionHandler } from "../../exceptions/gpt.exceptions";
+import { ChatResponse, ChatUseCaseOptions } from "../shared";
 
 export const chatUseCase = async (
   openai: OpenAI,
-  { prompt, locale = "es-ES", previousResponseId }: Options
+  { prompt, locale = "es-ES", previousResponseId }: ChatUseCaseOptions
 ): Promise<ChatResponse> => {
-  console.log('📩 Chat Input:', { prompt, previousResponseId });
 
   const response = await openai.responses.create({
     model: "gpt-4o-mini",
-    instructions: getChatInstruction(locale),
+    instructions: buildChatPrompt(locale),
     input: prompt,
     text: {
       format: {
@@ -38,11 +27,7 @@ export const chatUseCase = async (
     ...(previousResponseId && { previous_response_id: previousResponseId })
   });
 
-  const content = response.output_text?.trim();
-  
-  if (!content) {
-    GptExceptionHandler.handleOpenAIResponseError();
-  }
+  const content = extractOutputText(response);
 
   try {
     const parsed = JSON.parse(content);
