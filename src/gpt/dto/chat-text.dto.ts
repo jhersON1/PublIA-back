@@ -1,11 +1,11 @@
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class ChatTextDto {
 
   @IsString()
   readonly prompt: string;
 
-  @IsInt()
+  @IsString()
   @IsOptional()
-  readonly maxTokens?: number;
+  readonly previousResponseId?: string;
 }

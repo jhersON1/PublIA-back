@@ -19,3 +19,5 @@ export const generatePostsSchema = {
   required: ["networks"],
   additionalProperties: false
 } as const;
+
+export { chatResponseSchema } from "./chat-response.schema";

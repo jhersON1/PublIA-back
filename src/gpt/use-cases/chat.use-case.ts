@@ -1,29 +1,41 @@
 import OpenAI from "openai";
 import { getChatInstruction } from "./instructions";
 import { GptExceptionHandler } from "../exceptions/gpt.exceptions";
+import { chatResponseSchema } from "../openai-network-schema";
 
 interface Options {
   prompt: string;
   locale?: string;
+  previousResponseId?: string;
 }
 
 export type ChatResponse = {
   message: string;
   context: string;
+  responseId: string;
 };
 
 export const chatUseCase = async (
   openai: OpenAI,
-  { prompt, locale = "es-ES" }: Options
+  { prompt, locale = "es-ES", previousResponseId }: Options
 ): Promise<ChatResponse> => {
+  console.log('📩 Chat Input:', { prompt, previousResponseId });
+
   const response = await openai.responses.create({
     model: "gpt-4o-mini",
     instructions: getChatInstruction(locale),
-    input: `${prompt}\n\nResponde en formato JSON.`,
+    input: prompt,
     text: {
-      format: { type: "json_object" }
+      format: {
+        type: "json_schema",
+        name: "ChatResponse",
+        strict: true,
+        schema: chatResponseSchema
+      }
     },
-    max_output_tokens: 500
+    max_output_tokens: 500,
+    store: true,
+    ...(previousResponseId && { previous_response_id: previousResponseId })
   });
 
   const content = response.output_text?.trim();
@@ -33,7 +45,12 @@ export const chatUseCase = async (
   }
 
   try {
-    return JSON.parse(content) as ChatResponse;
+    const parsed = JSON.parse(content);
+    return {
+      message: parsed.message,
+      context: parsed.context,
+      responseId: response.id
+    };
   } catch (error) {
     GptExceptionHandler.handleJsonParseError(error as Error);
   }

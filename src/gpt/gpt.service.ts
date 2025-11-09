@@ -18,7 +18,8 @@ export class GptService {
 
   async chat(chatTextDto: ChatTextDto) {
     return await chatUseCase(this.openai, {
-      prompt: chatTextDto.prompt
+      prompt: chatTextDto.prompt,
+      previousResponseId: chatTextDto.previousResponseId
     });
   }
 
