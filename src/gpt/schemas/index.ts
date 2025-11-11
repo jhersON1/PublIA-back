@@ -3,5 +3,6 @@ export {
   generatePostsSchema,
   facebookSchema,
   instagramSchema,
-  linkedinSchema
+  linkedinSchema,
+  socialPostsRules
 } from "./social-posts";

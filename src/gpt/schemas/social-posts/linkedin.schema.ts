@@ -1,5 +1,7 @@
 export const linkedinSchema = {
   type: "object",
+  description:
+    "Tono profesional y corporativo; pocos o ningún emoji; hashtags moderados; hasta 3000 caracteres.",
   properties: {
     platform: { type: "string", const: "linkedin" },
     text: { type: "string", minLength: 1 },
@@ -14,3 +16,6 @@ export const linkedinSchema = {
   required: ["platform", "text", "hashtags", "character_count", "tone"],
   additionalProperties: false
 } as const;
+
+const liMax: number = (linkedinSchema as any).properties.character_count.maximum;
+export const linkedinRules = `profesional y corporativo; pocos o ningún emoji; hashtags moderados; <= ${liMax} caracteres`;

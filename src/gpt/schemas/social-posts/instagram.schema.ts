@@ -1,5 +1,7 @@
 export const instagramSchema = {
   type: "object",
+  description:
+    "Tono visual y casual; emojis recomendados; hashtags importantes y al final; hasta 2200 caracteres; incluir 'suggested_image_prompt'.",
   properties: {
     platform: { type: "string", const: "instagram" },
     text: { type: "string", minLength: 1 },
@@ -20,3 +22,6 @@ export const instagramSchema = {
   ],
   additionalProperties: false
 } as const;
+
+const igMax: number = (instagramSchema as any).properties.character_count.maximum;
+export const instagramRules = `visual y casual; emojis; hashtags IMPORTANTES y al final; <= ${igMax} caracteres; incluir "suggested_image_prompt"`;
