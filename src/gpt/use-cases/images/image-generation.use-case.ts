@@ -1,10 +1,11 @@
 import OpenAI from 'openai';
 import { GptExceptionHandler } from '../../exceptions/gpt.exceptions';
 import { ImageGenerationResponse, ImageGenerationUseCaseOptions } from '../shared';
-import { downloadBase64ImageAsPng } from '../../helpers';
+import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
 
 export const imageGenerationUseCase = async (
   openai: OpenAI,
+  cloudinaryService: CloudinaryService,
   { prompt, previousResponseId }: ImageGenerationUseCaseOptions
 ): Promise<ImageGenerationResponse> => {
 
@@ -28,11 +29,14 @@ export const imageGenerationUseCase = async (
     const imageBase64 = imageGenerationCalls[0].result as string;
 
     // Guardar imagen como PNG
-    const fileName = await downloadBase64ImageAsPng(imageBase64);
-    const url = `${process.env.SERVER_URL}/gpt/image-generation/${fileName}`;
+    // const fileName = await downloadBase64ImageAsPng(imageBase64);
+    // const url = `${process.env.SERVER_URL}/gpt/image-generation/${fileName}`;
+
+    // Subir imagen a Cloudinary
+    const cloudinaryResult = await cloudinaryService.uploadImage(imageBase64, 'generated-images');
 
     return {
-      url,
+      url: cloudinaryResult.secure_url,
       responseId: response.id
     };
   } catch (error) {

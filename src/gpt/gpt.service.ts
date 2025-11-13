@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ChatTextDto, GeneratePostsDto, GenerateImageDto, GenerateImageUrlDto } from './dto';
 import { chatUseCase, generatePostsUseCase, imageGenerationUseCase } from './use-cases';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import OpenAI from 'openai';
 
 
@@ -10,7 +11,10 @@ export class GptService {
   
   private openai: OpenAI;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private cloudinaryService: CloudinaryService
+  ) {
     this.openai = new OpenAI({
       apiKey: this.configService.get<string>('OPENAI_API_KEY')
     });
@@ -30,7 +34,7 @@ export class GptService {
   }
 
   async generateImage(generateImageDto: GenerateImageDto) {
-    return await imageGenerationUseCase(this.openai, {
+    return await imageGenerationUseCase(this.openai, this.cloudinaryService, {
       prompt: generateImageDto.prompt,
       previousResponseId: generateImageDto.previousResponseId
     });
