@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ChatTextDto, GeneratePostsDto } from './dto';
-import { chatUseCase, generatePostsUseCase } from './use-cases';
+import { ChatTextDto, GeneratePostsDto, GenerateImageDto, GenerateImageUrlDto } from './dto';
+import { chatUseCase, generatePostsUseCase, imageGenerationUseCase } from './use-cases';
 import OpenAI from 'openai';
 
 
@@ -28,4 +28,12 @@ export class GptService {
       prompt: generatePostsDto.prompt
     });
   }
+
+  async generateImage(generateImageDto: GenerateImageDto) {
+    return await imageGenerationUseCase(this.openai, {
+      prompt: generateImageDto.prompt,
+      previousResponseId: generateImageDto.previousResponseId
+    });
+  }
+
 }

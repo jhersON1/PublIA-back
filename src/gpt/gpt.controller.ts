@@ -1,6 +1,6 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { GptService } from './gpt.service';
-import { ChatTextDto, GeneratePostsDto } from './dto';
+import { ChatTextDto, GeneratePostsDto, GenerateImageDto, GenerateImageUrlDto } from './dto';
 
 
 @Controller('gpt')
@@ -20,4 +20,12 @@ export class GptController {
   ) {
     return this.gptService.generatePosts(generatePostsDto);
   }
+
+  @Post('generate-image')
+  generateImage (
+    @Body() generateImageDto: GenerateImageDto
+  ) {
+    return this.gptService.generateImage(generateImageDto);
+  }
+
 }
