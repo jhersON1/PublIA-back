@@ -5,6 +5,7 @@ import { GptModule } from './gpt/gpt.module';
 import { ConfigModule } from '@nestjs/config';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { TiktokModule } from './tiktok/tiktok.module';
+import { MetaModule } from './meta/meta.module';
 
 
 @Module({
@@ -12,7 +13,8 @@ import { TiktokModule } from './tiktok/tiktok.module';
     ConfigModule.forRoot({ isGlobal: true }),
     GptModule,
     CloudinaryModule,
-    TiktokModule
+    TiktokModule,
+    MetaModule
   ],
   controllers: [AppController],
   providers: [AppService],
