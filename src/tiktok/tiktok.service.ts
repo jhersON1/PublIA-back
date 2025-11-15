@@ -13,12 +13,13 @@ export class TiktokService {
 
   private getScopes(): string {
     const raw = this.configService.get<string>('TIKTOK_SCOPES') || 'user.info.basic';
-    // Acepta comas o espacios y las normaliza a espacios, como requiere TikTok
+    // Acepta comas o espacios y las normaliza a comas, como recomienda TikTok
     return raw
-      .replace(/,/g, ' ')
-      .split(/\s+/)
+      .replace(/\s+/g, ',')
+      .split(',')
+      .map((s) => s.trim())
       .filter(Boolean)
-      .join(' ');
+      .join(',');
   }
 
   getAuthorizeUrl(state?: string) {
