@@ -250,6 +250,32 @@ npm run start:dev      # Iniciar en modo desarrollo
 npm run start:debug    # Iniciar en modo debug
 ```
 
+## Despliegue en Vercel
+
+Este proyecto está preparado para ejecutarse en Vercel mediante una función serverless que inicializa NestJS y expone todas las rutas.
+
+- Archivos añadidos:
+  - `api/index.ts`: handler serverless que inicia la app Nest y reusa el adaptador de Express sin `listen()`.
+  - `vercel.json`: enruta todas las peticiones a `api/index.ts` y configura runtime Node 20.
+
+- Variables de entorno en Vercel (Project Settings → Environment Variables):
+  - `OPENAI_API_KEY`
+  - `TIKTOK_CLIENT_KEY`
+  - `TIKTOK_CLIENT_SECRET`
+  - `TIKTOK_REDIRECT_URI=https://<tu-app>.vercel.app/auth/tiktok/callback`
+  - Si usas Cloudinary: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+
+- Pasos de deploy:
+  1) Sube el repo a GitHub y conéctalo en Vercel (plan Hobby).
+  2) Importa el proyecto. Vercel detectará `api/index.ts` automáticamente.
+  3) Define las variables de entorno y realiza el primer deploy.
+  4) Prueba `https://<tu-app>.vercel.app/` y `https://<tu-app>.vercel.app/auth/tiktok/login`.
+  5) En TikTok Developer Console, registra el Redirect URI exacto: `https://<tu-app>.vercel.app/auth/tiktok/callback`.
+
+Notas:
+- Para desarrollo local se usa `src/main.ts` (puerto 3000). En Vercel, `api/index.ts` inicializa la misma app sin abrir puerto.
+- Evita loguear tokens en producción; el módulo de TikTok imprime tokens sólo con fines de depuración.
+
 ## 📝 Validaciones
 
 El proyecto utiliza `class-validator` para validar todas las peticiones:
