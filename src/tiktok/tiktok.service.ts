@@ -7,26 +7,40 @@ import { UpdateTiktokDto } from './dto/update-tiktok.dto';
 export class TiktokService {
   constructor(private readonly configService: ConfigService) {}
 
+  private sanitize(value?: string): string {
+    return (value ?? '').trim();
+  }
+
+  private getScopes(): string {
+    const raw = this.configService.get<string>('TIKTOK_SCOPES') || 'user.info.basic';
+    // Acepta comas o espacios y las normaliza a espacios, como requiere TikTok
+    return raw
+      .replace(/,/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean)
+      .join(' ');
+  }
+
   getAuthorizeUrl(state?: string) {
-    const clientKey = this.configService.get<string>('TIKTOK_CLIENT_KEY');
-    const redirectUri = this.configService.get<string>('TIKTOK_REDIRECT_URI');
-    const scopes = this.configService.get<string>('TIKTOK_SCOPES') || 'user.info.basic';
+    const clientKey = this.sanitize(this.configService.get<string>('TIKTOK_CLIENT_KEY'));
+    const redirectUri = this.sanitize(this.configService.get<string>('TIKTOK_REDIRECT_URI'));
+    const scopes = this.getScopes();
 
     const base = 'https://www.tiktok.com/v2/auth/authorize/';
     const params = new URLSearchParams({
-      client_key: clientKey ?? '',
+      client_key: clientKey,
       response_type: 'code',
       scope: scopes,
-      redirect_uri: redirectUri ?? '',
+      redirect_uri: redirectUri,
       state: state || Math.random().toString(36).slice(2),
     });
     return `${base}?${params.toString()}`;
   }
 
   async exchangeCodeForToken(code: string) {
-    const clientKey = this.configService.get<string>('TIKTOK_CLIENT_KEY');
-    const clientSecret = this.configService.get<string>('TIKTOK_CLIENT_SECRET');
-    const redirectUri = this.configService.get<string>('TIKTOK_REDIRECT_URI');
+    const clientKey = this.sanitize(this.configService.get<string>('TIKTOK_CLIENT_KEY'));
+    const clientSecret = this.sanitize(this.configService.get<string>('TIKTOK_CLIENT_SECRET'));
+    const redirectUri = this.sanitize(this.configService.get<string>('TIKTOK_REDIRECT_URI'));
 
     if (!clientKey || !clientSecret || !redirectUri) {
       throw new Error('Missing TikTok OAuth env vars (TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET, TIKTOK_REDIRECT_URI)');
