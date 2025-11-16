@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { HttpClient } from './http.client';
+import { HttpService } from '../../http/http.service';
 import { MetaException } from '../exceptions/meta.exceptions';
+import { getMetaGraphBaseUrl } from '../constan-url/meta.urls';
 
 @Injectable()
 export class MetaGraphClient {
@@ -9,10 +10,9 @@ export class MetaGraphClient {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly http: HttpClient,
+    private readonly http: HttpService,
   ) {
-    const version = this.config.get<string>('META_GRAPH_VERSION') || 'v19.0';
-    this.baseUrl = `https://graph.facebook.com/${version}`;
+    this.baseUrl = getMetaGraphBaseUrl(this.config);
   }
 
   async postPageFeedMessage(pageId: string, accessToken: string, message: string) {
@@ -43,4 +43,3 @@ export class MetaGraphClient {
     }
   }
 }
-

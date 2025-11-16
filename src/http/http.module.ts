@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
 import { HttpService } from './http.service';
-import { HttpController } from './http.controller';
 
+// Módulo HTTP compartido para llamadas salientes.
+// Exporta un servicio simple basado en fetch con timeout y manejo
+// uniforme de respuestas/errores. No depende de axios ni RxJS.
 @Module({
-  controllers: [HttpController],
   providers: [HttpService],
+  exports: [HttpService],
 })
 export class HttpModule {}
+
