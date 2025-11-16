@@ -1,34 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { MetaService } from './meta.service';
-import { CreateMetaDto } from './dto/create-meta.dto';
-import { UpdateMetaDto } from './dto/update-meta.dto';
+import { FacebookPostTextDto } from './dto/facebook-post-text.dto';
+import { PostResult } from './use-cases/publish/shared/types';
 
 @Controller('meta')
 export class MetaController {
   constructor(private readonly metaService: MetaService) {}
 
-  @Post()
-  create(@Body() createMetaDto: CreateMetaDto) {
-    return this.metaService.create(createMetaDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.metaService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.metaService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMetaDto: UpdateMetaDto) {
-    return this.metaService.update(+id, updateMetaDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.metaService.remove(+id);
+  @Post('facebook/post-text')
+  postFacebookText(@Body() dto: FacebookPostTextDto): Promise<PostResult> {
+    return this.metaService.postFacebookText(dto);
   }
 }

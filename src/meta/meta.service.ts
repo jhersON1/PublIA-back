@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { CreateMetaDto } from './dto/create-meta.dto';
-import { UpdateMetaDto } from './dto/update-meta.dto';
+import { ConfigService } from '@nestjs/config';
+import { FacebookPostTextDto } from './dto/facebook-post-text.dto';
+import { MetaGraphClient } from './clients/meta-graph.client';
+import { PostResult } from './use-cases/publish/shared/types';
+import { postFacebookTextUseCase } from './use-cases/publish/facebook/post-text.use-case';
+import { MetaException } from './exceptions/meta.exceptions';
 
 @Injectable()
 export class MetaService {
-  create(createMetaDto: CreateMetaDto) {
-    return 'This action adds a new meta';
-  }
+  constructor(
+    private readonly config: ConfigService,
+    private readonly graph: MetaGraphClient,
+  ) {}
 
-  findAll() {
-    return `This action returns all meta`;
-  }
+  async postFacebookText(dto: FacebookPostTextDto): Promise<PostResult> {
+    const pageId = this.config.get<string>('FACEBOOK_PAGE_ID');
+    const accessToken = this.config.get<string>('FACEBOOK_PAGE_ACCESS_TOKEN');
 
-  findOne(id: number) {
-    return `This action returns a #${id} meta`;
-  }
+    if (!pageId) MetaException.missingEnv('FACEBOOK_PAGE_ID');
+    if (!accessToken) MetaException.missingEnv('FACEBOOK_PAGE_ACCESS_TOKEN');
 
-  update(id: number, updateMetaDto: UpdateMetaDto) {
-    return `This action updates a #${id} meta`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} meta`;
+    return await postFacebookTextUseCase(this.graph, {
+      pageId,
+      accessToken,
+      message: dto.text,
+    });
   }
 }

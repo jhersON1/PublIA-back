@@ -70,23 +70,4 @@ export class TiktokService {
     }
     return json;
   }
-  create(createTiktokDto: CreateTiktokDto) {
-    return 'This action adds a new tiktok';
-  }
-
-  findAll() {
-    return `This action returns all tiktok`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} tiktok`;
-  }
-
-  update(id: number, updateTiktokDto: UpdateTiktokDto) {
-    return `This action updates a #${id} tiktok`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} tiktok`;
-  }
 }

@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { TiktokModule } from './tiktok/tiktok.module';
 import { MetaModule } from './meta/meta.module';
+import { HttpModule } from './http/http.module';
 
 
 @Module({
@@ -14,7 +15,8 @@ import { MetaModule } from './meta/meta.module';
     GptModule,
     CloudinaryModule,
     TiktokModule,
-    MetaModule
+    MetaModule,
+    HttpModule
   ],
   controllers: [AppController],
   providers: [AppService],
