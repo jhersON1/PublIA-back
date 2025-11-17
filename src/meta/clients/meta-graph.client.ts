@@ -4,6 +4,18 @@ import { HttpService } from '../../http/http.service';
 import { MetaException } from '../exceptions/meta.exceptions';
 import { getMetaGraphBaseUrl } from '../constan-url/meta.urls';
 
+export interface ManagedAccount {
+  id: string;
+  name: string;
+  access_token: string;
+  instagram_business_account?: { id: string };
+}
+
+interface AccountsResponse {
+  data: ManagedAccount[];
+  paging?: { next?: string };
+}
+
 @Injectable()
 export class MetaGraphClient {
   private readonly baseUrl: string;
@@ -15,31 +27,20 @@ export class MetaGraphClient {
     this.baseUrl = getMetaGraphBaseUrl(this.config);
   }
 
-  async postPageFeedMessage(pageId: string, accessToken: string, message: string) {
-    const url = `${this.baseUrl}/${encodeURIComponent(pageId)}/feed`;
-    const body = new URLSearchParams({
-      message,
-      access_token: accessToken,
-    });
-    try {
-      return await this.http.request<{ id: string }>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString(),
-      });
-    } catch (e: any) {
-      MetaException.graphApi('Facebook Graph API error (feed)', e.body || e.message, e.status);
-    }
-  }
-
-  async getPermalink(postId: string, accessToken: string) {
-    const url = `${this.baseUrl}/${encodeURIComponent(postId)}?fields=permalink_url&access_token=${encodeURIComponent(
-      accessToken,
+  /**
+   * Lista las páginas administradas por el usuario con su access_token
+   * y, si existe, el instagram_business_account vinculado.
+   */
+  async listManagedAccounts(userAccessToken: string): Promise<ManagedAccount[]> {
+    const fields = 'id,name,access_token,instagram_business_account';
+    const url = `${this.baseUrl}/me/accounts?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(
+      userAccessToken,
     )}`;
     try {
-      return await this.http.request<{ permalink_url?: string }>(url, { method: 'GET' });
+      const res = await this.http.get<AccountsResponse>(url);
+      return res?.data ?? [];
     } catch (e: any) {
-      MetaException.graphApi('Facebook Graph API error (permalink)', e.body || e.message, e.status);
+      MetaException.graphApi('Meta Graph API error (list accounts)', e.body || e.message, e.status);
     }
   }
 }

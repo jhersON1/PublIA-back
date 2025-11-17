@@ -3,9 +3,8 @@ export type ContentType = 'text' | 'image';
 
 export interface PostResult {
   ok: true;
-  platform: 'facebook';
+  platform: Platform;
   id: string;
   permalink?: string;
   status: 'published';
 }
-

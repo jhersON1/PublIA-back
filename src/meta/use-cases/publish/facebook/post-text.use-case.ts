@@ -1,4 +1,4 @@
-import { MetaGraphClient } from '../../../clients/meta-graph.client';
+import { FacebookClient } from '../../../clients/facebook.client';
 import { PostResult } from '../shared/types';
 import { MetaException } from '../../../exceptions/meta.exceptions';
 
@@ -9,19 +9,19 @@ interface Options {
 }
 
 export const postFacebookTextUseCase = async (
-  graph: MetaGraphClient,
+  facebook: FacebookClient,
   { pageId, accessToken, message }: Options,
 ): Promise<PostResult> => {
   if (!message || !message.trim()) {
     MetaException.validation('Facebook text message is required');
   }
 
-  const created = await graph.postPageFeedMessage(pageId, accessToken, message.trim());
+  const created = await facebook.postPageFeedMessage(pageId, accessToken, message.trim());
 
   // Fetch permalink (best-effort)
   let permalink: string | undefined;
   try {
-    const meta = await graph.getPermalink(created.id, accessToken);
+    const meta = await facebook.getPermalink(created.id, accessToken);
     permalink = meta?.permalink_url;
   } catch {
     // ignore permalink failures
@@ -36,4 +36,3 @@ export const postFacebookTextUseCase = async (
   };
   return result;
 };
-
