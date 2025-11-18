@@ -15,7 +15,6 @@ export class InstagramClient {
     this.baseUrl = getMetaGraphBaseUrl(this.config);
   }
 
-  // Crear container de imagen
   async createImageMedia(igUserId: string, accessToken: string, imageUrl: string, caption?: string) {
     const url = `${this.baseUrl}/${encodeURIComponent(igUserId)}/media`;
     const params: Record<string, string> = {
@@ -36,7 +35,6 @@ export class InstagramClient {
     }
   }
 
-  // Publicar container creado
   async publishMedia(igUserId: string, accessToken: string, creationId: string) {
     const url = `${this.baseUrl}/${encodeURIComponent(igUserId)}/media_publish`;
     const body = new URLSearchParams({
@@ -54,7 +52,6 @@ export class InstagramClient {
     }
   }
 
-  // Obtener permalink del media publicado
   async getMediaPermalink(mediaId: string, accessToken: string) {
     const url = `${this.baseUrl}/${encodeURIComponent(mediaId)}?fields=permalink&access_token=${encodeURIComponent(
       accessToken,

@@ -12,11 +12,7 @@ export const postFacebookTextUseCase = async (
   facebook: FacebookClient,
   { pageId, accessToken, message }: Options,
 ): Promise<PostResult> => {
-  if (!message || !message.trim()) {
-    MetaException.validation('Facebook text message is required');
-  }
-
-  const created = await facebook.postPageFeedMessage(pageId, accessToken, message.trim());
+  const created = await facebook.postPageFeedMessage(pageId, accessToken, message);
 
   // Fetch permalink (best-effort)
   let permalink: string | undefined;

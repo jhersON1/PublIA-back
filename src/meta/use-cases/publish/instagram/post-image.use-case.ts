@@ -13,8 +13,6 @@ export const postInstagramImageUseCase = async (
   instagram: InstagramClient,
   { igUserId, accessToken, imageUrl, caption }: Options,
 ): Promise<PostResult> => {
-  if (!imageUrl) MetaException.validation('Instagram imageUrl is required');
-
   // 1) Crear container de imagen
   const created = await instagram.createImageMedia(igUserId, accessToken, imageUrl, caption);
 

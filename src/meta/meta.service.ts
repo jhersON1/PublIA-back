@@ -2,13 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FacebookPostTextDto } from './dto/facebook-post-text.dto';
 import { InstagramPostImageDto } from './dto/instagram-post-image.dto';
+import { WhatsAppSendTemplateDto } from './dto/whatsapp-send-template.dto';
 import { MetaGraphClient, ManagedAccount } from './clients/meta-graph.client';
 import { PostResult } from './use-cases/publish/shared/types';
 import { postFacebookTextUseCase } from './use-cases/publish/facebook/post-text.use-case';
 import { postInstagramImageUseCase } from './use-cases/publish/instagram/post-image.use-case';
+import { sendWhatsAppTemplateUseCase } from './use-cases/publish/whatsapp/send-template.use-case';
 import { MetaException } from './exceptions/meta.exceptions';
 import { FacebookClient } from './clients/facebook.client';
 import { InstagramClient } from './clients/instagram.client';
+import { WhatsAppClient } from './clients/whatsapp.client';
 
 @Injectable()
 export class MetaService {
@@ -17,6 +20,7 @@ export class MetaService {
     private readonly graph: MetaGraphClient,
     private readonly facebook: FacebookClient,
     private readonly instagram: InstagramClient,
+    private readonly whatsapp: WhatsAppClient,
   ) {}
 
   async postFacebookText(dto: FacebookPostTextDto): Promise<PostResult> {
@@ -50,6 +54,19 @@ export class MetaService {
       accessToken: account.access_token,
       imageUrl: dto.imageUrl,
       caption: dto.caption,
+    });
+  }
+
+  /**
+   * Envía un mensaje de template de WhatsApp
+   * @param dto - Datos del mensaje (destinatario, nombre del template, código de idioma)
+   * @returns Resultado con el ID del mensaje enviado
+   */
+  async sendWhatsAppTemplate(dto: WhatsAppSendTemplateDto): Promise<PostResult> {
+    return await sendWhatsAppTemplateUseCase(this.whatsapp, {
+      to: dto.to,
+      templateName: dto.templateName,
+      languageCode: dto.languageCode,
     });
   }
 
