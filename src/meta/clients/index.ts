@@ -5,4 +5,3 @@ export { MetaGraphClient } from './meta-graph.client';
 
 export * from './dto';
 export * from './interfaces';
-export * from './helpers';

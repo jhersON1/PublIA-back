@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '../../http/http.service';
 import { MetaException } from '../exceptions/meta.exceptions';
-import { getMetaGraphBaseUrl } from '../constan-url/meta.urls';
+import { getMetaGraphBaseUrl, getFacebookPageFeedUrl, getFacebookPermalinkUrl } from '../constan-url/meta.urls';
 import { PostPageFeedDto, GetPermalinkDto } from './dto/facebook';
 import { FacebookPostResponse, FacebookPermalinkResponse } from './interfaces/facebook.interface';
-import { buildFormBody } from './helpers';
 
 @Injectable()
 export class FacebookClient {
@@ -19,8 +18,8 @@ export class FacebookClient {
   }
 
   async postPageFeedMessage(postPageFeedDto: PostPageFeedDto): Promise<FacebookPostResponse> {
-    const url = `${this.baseUrl}/${encodeURIComponent(postPageFeedDto.pageId)}/feed`;
-    const body = buildFormBody({
+    const url = getFacebookPageFeedUrl(this.baseUrl, postPageFeedDto.pageId);
+    const body = new URLSearchParams({
       message: postPageFeedDto.message,
       access_token: postPageFeedDto.accessToken,
     });
@@ -37,10 +36,8 @@ export class FacebookClient {
   }
 
   async getPermalink(getPermalinkDto: GetPermalinkDto): Promise<FacebookPermalinkResponse> {
-    const url = `${this.baseUrl}/${encodeURIComponent(getPermalinkDto.postId)}?fields=permalink_url&access_token=${encodeURIComponent(
-      getPermalinkDto.accessToken,
-    )}`;
-    
+    const url = getFacebookPermalinkUrl(this.baseUrl, getPermalinkDto.postId, getPermalinkDto.accessToken);
+
     try {
       return await this.http.request<FacebookPermalinkResponse>(url, { method: 'GET' });
     } catch (e: any) {

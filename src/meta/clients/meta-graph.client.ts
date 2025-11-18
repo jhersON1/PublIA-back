@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '../../http/http.service';
 import { MetaException } from '../exceptions/meta.exceptions';
-import { getMetaGraphBaseUrl } from '../constan-url/meta.urls';
+import { getMetaGraphBaseUrl, getMetaAccountsUrl } from '../constan-url/meta.urls';
 import { ListManagedAccountsDto } from './dto/meta-graph';
 import { ManagedAccount, AccountsResponse } from './interfaces/meta-graph.interface';
 
@@ -18,11 +18,8 @@ export class MetaGraphClient {
   }
 
   async listManagedAccounts(listManagedAccountsDto: ListManagedAccountsDto): Promise<ManagedAccount[]> {
-    const fields = 'id,name,access_token,instagram_business_account';
-    const url = `${this.baseUrl}/me/accounts?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(
-      listManagedAccountsDto.userAccessToken,
-    )}`;
-    
+    const url = getMetaAccountsUrl(this.baseUrl, listManagedAccountsDto.userAccessToken);
+
     try {
       const res = await this.http.get<AccountsResponse>(url);
       return res?.data ?? [];

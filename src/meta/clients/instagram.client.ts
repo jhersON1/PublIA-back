@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '../../http/http.service';
 import { MetaException } from '../exceptions/meta.exceptions';
-import { getMetaGraphBaseUrl } from '../constan-url/meta.urls';
+import { getMetaGraphBaseUrl, getInstagramMediaUrl, getInstagramMediaPublishUrl, getInstagramPermalinkUrl } from '../constan-url/meta.urls';
 import { CreateImageMediaDto, PublishMediaDto, GetMediaPermalinkDto } from './dto/instagram';
 import { InstagramMediaResponse, InstagramPermalinkResponse } from './interfaces/instagram.interface';
-import { buildFormBody } from './helpers';
 
 @Injectable()
 export class InstagramClient {
@@ -19,7 +18,7 @@ export class InstagramClient {
   }
 
   async createImageMedia(createImageMediaDto: CreateImageMediaDto): Promise<InstagramMediaResponse> {
-    const url = `${this.baseUrl}/${encodeURIComponent(createImageMediaDto.igUserId)}/media`;
+    const url = getInstagramMediaUrl(this.baseUrl, createImageMediaDto.igUserId);
     const params: Record<string, string> = {
       image_url: createImageMediaDto.imageUrl,
       access_token: createImageMediaDto.accessToken,
@@ -27,8 +26,8 @@ export class InstagramClient {
 
     if (createImageMediaDto.caption) params.caption = createImageMediaDto.caption;
 
-    const body = buildFormBody(params);
-    
+    const body = new URLSearchParams(params);
+
     try {
       return await this.http.request<InstagramMediaResponse>(url, {
         method: 'POST',
@@ -41,8 +40,8 @@ export class InstagramClient {
   }
 
   async publishMedia(publishMediaDto: PublishMediaDto): Promise<InstagramMediaResponse> {
-    const url = `${this.baseUrl}/${encodeURIComponent(publishMediaDto.igUserId)}/media_publish`;
-    const body = buildFormBody({
+    const url = getInstagramMediaPublishUrl(this.baseUrl, publishMediaDto.igUserId);
+    const body = new URLSearchParams({
       creation_id: publishMediaDto.creationId,
       access_token: publishMediaDto.accessToken,
     });
@@ -59,9 +58,7 @@ export class InstagramClient {
   }
 
   async getMediaPermalink(getMediaPermalinkDto: GetMediaPermalinkDto): Promise<InstagramPermalinkResponse> {
-    const url = `${this.baseUrl}/${encodeURIComponent(getMediaPermalinkDto.mediaId)}?fields=permalink&access_token=${encodeURIComponent(
-      getMediaPermalinkDto.accessToken,
-    )}`;
+    const url = getInstagramPermalinkUrl(this.baseUrl, getMediaPermalinkDto.mediaId, getMediaPermalinkDto.accessToken);
 
     try {
       return await this.http.request<InstagramPermalinkResponse>(url, { method: 'GET' });

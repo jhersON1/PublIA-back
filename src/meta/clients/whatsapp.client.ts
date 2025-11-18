@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '../../http/http.service';
 import { MetaException } from '../exceptions/meta.exceptions';
-import { getMetaGraphBaseUrl } from '../constan-url/meta.urls';
+import { getMetaGraphBaseUrl, getWhatsAppMessagesUrl } from '../constan-url/meta.urls';
 import { SendTemplateMessageDto } from './dto/whatsapp';
 import {
   SendTemplateMessageRequest,
@@ -32,7 +32,7 @@ export class WhatsAppClient {
   }
 
   async sendTemplateMessage(sendTemplateMessageDto: SendTemplateMessageDto): Promise<SendMessageResponse> {
-    const url = `${this.baseUrl}/${this.phoneNumberId}/messages`;
+    const url = getWhatsAppMessagesUrl(this.baseUrl, this.phoneNumberId);
 
     const body: SendTemplateMessageRequest = {
       messaging_product: 'whatsapp',
