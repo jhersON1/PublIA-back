@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { FacebookPostTextDto } from './dto/facebook-post-text.dto';
 import { InstagramPostImageDto } from './dto/instagram-post-image.dto';
 import { WhatsAppSendTemplateDto } from './dto/whatsapp-send-template.dto';
-import { MetaGraphClient, ManagedAccount } from './clients/meta-graph.client';
+import { MetaGraphClient } from './clients/meta-graph.client';
+import { ManagedAccount } from './clients/interfaces/meta-graph.interface';
 import { PostResult } from './use-cases/publish/shared/types';
 import { postFacebookTextUseCase } from './use-cases/publish/facebook/post-text.use-case';
 import { postInstagramImageUseCase } from './use-cases/publish/instagram/post-image.use-case';
@@ -71,7 +72,7 @@ export class MetaService {
   }
 
   private async resolveSingleAccount(userToken: string): Promise<ManagedAccount> {
-    const accounts = await this.graph.listManagedAccounts(userToken);
+    const accounts = await this.graph.listManagedAccounts({ userAccessToken: userToken });
     if (!accounts || accounts.length === 0) {
       MetaException.validation('No Facebook Page found for the provided meta_user_access_token');
     }
