@@ -297,4 +297,8 @@ MIT-LICENCE
 
 **jhersON1**
 - GitHub: [@jhersON1](https://github.com/jhersON1)
+
+
+**Flujo del backend**
+- https://app.eraser.io/workspace/8U91Fe6A3mJOzqjFEyED?origin=share
 ---
