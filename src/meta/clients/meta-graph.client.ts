@@ -3,18 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '../../http/http.service';
 import { MetaException } from '../exceptions/meta.exceptions';
 import { getMetaGraphBaseUrl } from '../constan-url/meta.urls';
-
-export interface ManagedAccount {
-  id: string;
-  name: string;
-  access_token: string;
-  instagram_business_account?: { id: string };
-}
-
-interface AccountsResponse {
-  data: ManagedAccount[];
-  paging?: { next?: string };
-}
+import { ListManagedAccountsDto } from './dto/meta-graph';
+import { ManagedAccount, AccountsResponse } from './interfaces/meta-graph.interface';
 
 @Injectable()
 export class MetaGraphClient {
@@ -27,15 +17,12 @@ export class MetaGraphClient {
     this.baseUrl = getMetaGraphBaseUrl(this.config);
   }
 
-  /**
-   * Lista las páginas administradas por el usuario con su access_token
-   * y, si existe, el instagram_business_account vinculado.
-   */
-  async listManagedAccounts(userAccessToken: string): Promise<ManagedAccount[]> {
+  async listManagedAccounts(listManagedAccountsDto: ListManagedAccountsDto): Promise<ManagedAccount[]> {
     const fields = 'id,name,access_token,instagram_business_account';
     const url = `${this.baseUrl}/me/accounts?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(
-      userAccessToken,
+      listManagedAccountsDto.userAccessToken,
     )}`;
+    
     try {
       const res = await this.http.get<AccountsResponse>(url);
       return res?.data ?? [];

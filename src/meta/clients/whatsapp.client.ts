@@ -3,28 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '../../http/http.service';
 import { MetaException } from '../exceptions/meta.exceptions';
 import { getMetaGraphBaseUrl } from '../constan-url/meta.urls';
-
-interface TemplateLanguage {
-  code: string;
-}
-
-interface Template {
-  name: string;
-  language: TemplateLanguage;
-}
-
-interface SendTemplateMessageRequest {
-  messaging_product: 'whatsapp';
-  to: string;
-  type: 'template';
-  template: Template;
-}
-
-interface SendMessageResponse {
-  messaging_product: string;
-  contacts: Array<{ input: string; wa_id: string }>;
-  messages: Array<{ id: string }>;
-}
+import { SendTemplateMessageDto } from './dto/whatsapp';
+import {
+  SendTemplateMessageRequest,
+  SendMessageResponse,
+} from './interfaces/whatsapp.interface';
 
 @Injectable()
 export class WhatsAppClient {
@@ -48,24 +31,17 @@ export class WhatsAppClient {
     if (!this.phoneNumberId) MetaException.missingEnv('WHATSAPP_PHONE_NUMBER_ID');
   }
 
-  /**
-   * Envía un mensaje de template de WhatsApp a un número de teléfono
-   * @param to - Número de teléfono destino (formato internacional sin +, ej: "59172184204")
-   * @param templateName - Nombre del template aprobado en WhatsApp Business
-   * @param languageCode - Código de idioma del template (ej: "en_US", "es_ES")
-   * @returns Respuesta con el ID del mensaje enviado
-   */
-  async sendTemplateMessage(to: string, templateName: string, languageCode: string) {
+  async sendTemplateMessage(sendTemplateMessageDto: SendTemplateMessageDto): Promise<SendMessageResponse> {
     const url = `${this.baseUrl}/${this.phoneNumberId}/messages`;
 
     const body: SendTemplateMessageRequest = {
       messaging_product: 'whatsapp',
-      to,
+      to: sendTemplateMessageDto.to,
       type: 'template',
       template: {
-        name: templateName,
+        name: sendTemplateMessageDto.templateName,
         language: {
-          code: languageCode,
+          code: sendTemplateMessageDto.languageCode,
         },
       },
     };

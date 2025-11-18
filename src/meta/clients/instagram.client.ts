@@ -3,6 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '../../http/http.service';
 import { MetaException } from '../exceptions/meta.exceptions';
 import { getMetaGraphBaseUrl } from '../constan-url/meta.urls';
+import { CreateImageMediaDto, PublishMediaDto, GetMediaPermalinkDto } from './dto/instagram';
+import { InstagramMediaResponse, InstagramPermalinkResponse } from './interfaces/instagram.interface';
+import { buildFormBody } from './helpers';
 
 @Injectable()
 export class InstagramClient {
@@ -15,17 +18,19 @@ export class InstagramClient {
     this.baseUrl = getMetaGraphBaseUrl(this.config);
   }
 
-  async createImageMedia(igUserId: string, accessToken: string, imageUrl: string, caption?: string) {
-    const url = `${this.baseUrl}/${encodeURIComponent(igUserId)}/media`;
+  async createImageMedia(createImageMediaDto: CreateImageMediaDto): Promise<InstagramMediaResponse> {
+    const url = `${this.baseUrl}/${encodeURIComponent(createImageMediaDto.igUserId)}/media`;
     const params: Record<string, string> = {
-      image_url: imageUrl,
-      access_token: accessToken,
+      image_url: createImageMediaDto.imageUrl,
+      access_token: createImageMediaDto.accessToken,
     };
-    if (caption) params.caption = caption;
 
-    const body = new URLSearchParams(params);
+    if (createImageMediaDto.caption) params.caption = createImageMediaDto.caption;
+
+    const body = buildFormBody(params);
+    
     try {
-      return await this.http.request<{ id: string }>(url, {
+      return await this.http.request<InstagramMediaResponse>(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
@@ -35,14 +40,15 @@ export class InstagramClient {
     }
   }
 
-  async publishMedia(igUserId: string, accessToken: string, creationId: string) {
-    const url = `${this.baseUrl}/${encodeURIComponent(igUserId)}/media_publish`;
-    const body = new URLSearchParams({
-      creation_id: creationId,
-      access_token: accessToken,
+  async publishMedia(publishMediaDto: PublishMediaDto): Promise<InstagramMediaResponse> {
+    const url = `${this.baseUrl}/${encodeURIComponent(publishMediaDto.igUserId)}/media_publish`;
+    const body = buildFormBody({
+      creation_id: publishMediaDto.creationId,
+      access_token: publishMediaDto.accessToken,
     });
+
     try {
-      return await this.http.request<{ id: string }>(url, {
+      return await this.http.request<InstagramMediaResponse>(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
@@ -52,15 +58,15 @@ export class InstagramClient {
     }
   }
 
-  async getMediaPermalink(mediaId: string, accessToken: string) {
-    const url = `${this.baseUrl}/${encodeURIComponent(mediaId)}?fields=permalink&access_token=${encodeURIComponent(
-      accessToken,
+  async getMediaPermalink(getMediaPermalinkDto: GetMediaPermalinkDto): Promise<InstagramPermalinkResponse> {
+    const url = `${this.baseUrl}/${encodeURIComponent(getMediaPermalinkDto.mediaId)}?fields=permalink&access_token=${encodeURIComponent(
+      getMediaPermalinkDto.accessToken,
     )}`;
+
     try {
-      return await this.http.request<{ permalink?: string }>(url, { method: 'GET' });
+      return await this.http.request<InstagramPermalinkResponse>(url, { method: 'GET' });
     } catch (e: any) {
       MetaException.graphApi('Instagram Graph API error (permalink)', e.body || e.message, e.status);
     }
   }
 }
-
