@@ -7,6 +7,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { TiktokModule } from './tiktok/tiktok.module';
 import { MetaModule } from './meta/meta.module';
 import { HttpModule } from './http/http.module';
+import { LinkedinModule } from './linkedin/linkedin.module';
 
 
 @Module({
@@ -16,7 +17,8 @@ import { HttpModule } from './http/http.module';
     CloudinaryModule,
     TiktokModule,
     MetaModule,
-    HttpModule
+    HttpModule,
+    LinkedinModule
   ],
   controllers: [AppController],
   providers: [AppService],
