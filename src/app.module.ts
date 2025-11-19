@@ -8,6 +8,7 @@ import { TiktokModule } from './tiktok/tiktok.module';
 import { MetaModule } from './meta/meta.module';
 import { HttpModule } from './http/http.module';
 import { LinkedinModule } from './linkedin/linkedin.module';
+import { WinstonLogsModule } from './winston-logs/winston-logs.module';
 
 
 @Module({
@@ -18,7 +19,8 @@ import { LinkedinModule } from './linkedin/linkedin.module';
     TiktokModule,
     MetaModule,
     HttpModule,
-    LinkedinModule
+    LinkedinModule,
+    WinstonLogsModule
   ],
   controllers: [AppController],
   providers: [AppService],
