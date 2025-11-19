@@ -7,13 +7,14 @@ import {
   GeneratePostsResponse,
   GeneratePostsUseCaseOptions
 } from "../shared";
+import { GptModels } from "../gpt-model/gpt-models";
 
 export const generatePostsUseCase = async (
   openai: OpenAI,
   { prompt, locale = "es-ES" }: GeneratePostsUseCaseOptions
 ): Promise<GeneratePostsResponse> => {
   const response = await openai.responses.create({
-    model: "gpt-4o-mini",
+    model: GptModels.GeneratePosts,
     instructions: buildGeneratePostsPrompt(locale),
     input: `Brief: ${prompt}. Genera publicaciones optimizadas para cada red social.`,
     text: {

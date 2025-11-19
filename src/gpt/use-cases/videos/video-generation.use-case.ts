@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { GptExceptionHandler } from '../../exceptions/gpt.exceptions';
 import { VideoGenerationResponse, VideoGenerationUseCaseOptions } from '../shared';
+import { GptModels } from '../gpt-model/gpt-models';
 import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -14,10 +15,10 @@ export const videoGenerationUseCase = async (
   try {
     console.log('🎬 Iniciando generación de video con Azure OpenAI...');
     console.log('📝 Prompt:', prompt);
-    
+
     // Iniciar generación del video - Azure usa la ruta directa sin /videos
     let video = await azureOpenai.videos.create({
-      model: 'sora-2',  // En Azure esto puede ser ignorado si ya está en la URL
+      model: GptModels.VideoGeneration,  // En Azure esto puede ser ignorado si ya está en la URL
       prompt: prompt,
     });
 
@@ -84,7 +85,7 @@ export const videoGenerationUseCase = async (
       code: error.code,
       response: error.response?.data || error.response
     });
-    
+
     throw new Error(`Error generando video: ${error.message || 'Unknown error'}`);
   }
 };
