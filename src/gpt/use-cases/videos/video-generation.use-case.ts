@@ -6,6 +6,8 @@ import { GptModels } from '../gpt-model/gpt-models';
 import * as fs from 'fs';
 import * as path from 'path';
 import { HttpService } from '../../../http/http.service';
+import { AzureVideoEndpoints } from '../gpt-model/gpt-endpoints';
+import { AzureVideoGenerationJob } from '../shared/azure-video-types';
 
 @Injectable()
 export class VideoGenerationUseCase {
@@ -24,7 +26,9 @@ export class VideoGenerationUseCase {
     try {
       this.logger.log('🎬 Iniciando generación de video con Azure OpenAI (Sora)...');
 
-      const url = baseURL;
+      // 1. Create Job
+      const createUrl = baseURL;
+
       const body = {
         model: GptModels.VideoGeneration,
         prompt: prompt,
@@ -34,42 +38,45 @@ export class VideoGenerationUseCase {
         n_variants: n_variants || 1
       };
 
-      const initialData = await this.httpService.postJson<any>(url, body, {
+      const initialData = await this.httpService.postJson<AzureVideoGenerationJob>(createUrl, body, {
         headers: {
           'api-key': apiKey
         }
       });
 
-      this.logger.log(`✅ Video generation job started: ${initialData.id}`);
+      const jobId = initialData.id;
+      this.logger.log(`✅ Video generation job started: ${jobId}`);
 
-      // Polling
-      const videoData = await this.pollVideoStatus(url, apiKey, initialData.id);
+      // 2. Polling
+      const pollUrl = AzureVideoEndpoints.getJobStatusUrl(jobId);
+      const videoData = await this.pollVideoStatus(pollUrl, apiKey);
 
-      if (videoData.status === 'failed') {
-        throw new Error(`Video generation failed: ${JSON.stringify(videoData.error)}`);
+      if (videoData.status === 'failed' || videoData.status === 'cancelled') {
+        throw new Error(`Video generation failed: ${JSON.stringify(videoData.error || videoData.status)}`);
       }
 
-      // Check for generations array
+      // 3. Extract Generation ID
       let generationId = null;
       if (videoData.generations && videoData.generations.length > 0) {
         generationId = videoData.generations[0].id;
       }
 
       if (!generationId) {
-        throw new Error('No generation ID found in response');
+        throw new Error(`No generation ID found in response. Response: ${JSON.stringify(videoData)}`);
       }
 
-      // Construct download URL
-      const downloadUrl = this.constructDownloadUrl(url, generationId);
+      // 4. Construct Download URL
+      const downloadUrl = AzureVideoEndpoints.getVideoDownloadUrl(generationId);
 
-      this.logger.log(`📥 Downloading video content...`);
+      this.logger.log(`📥 Downloading video content from: ${downloadUrl}`);
 
+      // 5. Download Video
       const fileName = await this.downloadAndSaveVideo(downloadUrl, apiKey);
       const videoUrl = `${process.env.SERVER_URL}/gpt/video/${fileName}`;
 
       return {
         url: videoUrl,
-        responseId: videoData.id
+        responseId: jobId
       };
 
     } catch (error: any) {
@@ -78,54 +85,29 @@ export class VideoGenerationUseCase {
     }
   }
 
-  private constructDownloadUrl(baseUrl: string, generationId: string): string {
-    const urlObj = new URL(baseUrl);
-    const jobsPath = '/jobs';
-
-    if (urlObj.pathname.endsWith(jobsPath)) {
-      urlObj.pathname = urlObj.pathname.slice(0, -jobsPath.length);
-    }
-
-    if (urlObj.pathname.endsWith('/')) {
-      urlObj.pathname = urlObj.pathname.slice(0, -1);
-    }
-
-    urlObj.pathname = `${urlObj.pathname}/${generationId}/content/video`;
-    return urlObj.toString();
-  }
-
   private async pollVideoStatus(
-    createUrl: string,
+    url: string,
     apiKey: string,
-    jobId: string,
     maxAttempts: number = 60,
     intervalMs: number = 5000
-  ): Promise<any> {
+  ): Promise<AzureVideoGenerationJob> {
     let status = 'running';
-    let data: any = null;
+    let data: AzureVideoGenerationJob | null = null;
     let attempts = 0;
 
-    // Construct polling URL
-    const urlObj = new URL(createUrl);
-    const pathname = urlObj.pathname.endsWith('/') ? urlObj.pathname.slice(0, -1) : urlObj.pathname;
-    urlObj.pathname = `${pathname}/${jobId}`;
-    if (!urlObj.searchParams.has('api-version')) {
-      urlObj.searchParams.append('api-version', 'preview');
-    }
-    const url = urlObj.toString();
-
-    while (status !== 'succeeded' && status !== 'failed' && attempts < maxAttempts) {
+    while (status !== 'succeeded' && status !== 'failed' && status !== 'cancelled' && attempts < maxAttempts) {
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
 
-      data = await this.httpService.get<any>(url, {
+      data = await this.httpService.get<AzureVideoGenerationJob>(url, {
         headers: { 'api-key': apiKey }
       });
 
       status = data.status;
+      this.logger.debug(`Polling status: ${status}`);
       attempts++;
     }
 
-    if (status !== 'succeeded' && status !== 'failed') {
+    if (!data || (status !== 'succeeded' && status !== 'failed' && status !== 'cancelled')) {
       throw new Error(`Polling timed out without completion. Last status: ${status}`);
     }
 
