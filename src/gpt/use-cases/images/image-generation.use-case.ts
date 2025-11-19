@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { GptExceptionHandler } from '../../exceptions/gpt.exceptions';
 import { ImageGenerationResponse, ImageGenerationUseCaseOptions } from '../shared';
+import { GptModels } from '../gpt-model/gpt-models';
 import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
 
 export const imageGenerationUseCase = async (
@@ -11,7 +12,7 @@ export const imageGenerationUseCase = async (
 
   try {
     const response = await openai.responses.create({
-      model: "gpt-4o-mini",
+      model: GptModels.ImageGeneration,
       input: prompt,
       tools: [{ type: "image_generation" }],
       store: true,

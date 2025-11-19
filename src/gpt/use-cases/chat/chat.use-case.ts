@@ -4,6 +4,7 @@ import { chatResponseSchema } from "../../schemas";
 import { extractOutputText } from "../../utils";
 import { GptExceptionHandler } from "../../exceptions/gpt.exceptions";
 import { ChatResponse, ChatUseCaseOptions } from "../shared";
+import { GptModels } from "../gpt-model/gpt-models";
 
 export const chatUseCase = async (
   openai: OpenAI,
@@ -11,7 +12,7 @@ export const chatUseCase = async (
 ): Promise<ChatResponse> => {
 
   const response = await openai.responses.create({
-    model: "gpt-4o-mini",
+    model: GptModels.Chat,
     instructions: buildChatPrompt(locale),
     input: prompt,
     text: {
