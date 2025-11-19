@@ -3,13 +3,15 @@ import OpenAI from 'openai';
 import { VideoGenerationResponse } from '../shared';
 import { GenerateVideoDto } from '../../dto/generate-video.dto';
 import { GptModels } from '../gpt-model/gpt-models';
-import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
 import * as fs from 'fs';
 import * as path from 'path';
+import { HttpService } from '../../../http/http.service';
 
 @Injectable()
 export class VideoGenerationUseCase {
   private readonly logger = new Logger(VideoGenerationUseCase.name);
+
+  constructor(private readonly httpService: HttpService) { }
 
   async execute(
     azureOpenai: OpenAI,
@@ -32,21 +34,12 @@ export class VideoGenerationUseCase {
         n_variants: n_variants || 1
       };
 
-      const response = await fetch(url, {
-        method: 'POST',
+      const initialData = await this.httpService.postJson<any>(url, body, {
         headers: {
-          'Content-Type': 'application/json',
           'api-key': apiKey
-        },
-        body: JSON.stringify(body)
+        }
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Azure OpenAI Error: ${response.status} - ${errorText}`);
-      }
-
-      const initialData = await response.json();
       this.logger.log(`✅ Video generation job started: ${initialData.id}`);
 
       // Polling
@@ -67,17 +60,7 @@ export class VideoGenerationUseCase {
       }
 
       // Construct download URL
-      const downloadUrlObj = new URL(url);
-      const jobsPath = '/jobs';
-      if (downloadUrlObj.pathname.endsWith(jobsPath)) {
-        downloadUrlObj.pathname = downloadUrlObj.pathname.slice(0, -jobsPath.length);
-      }
-      if (downloadUrlObj.pathname.endsWith('/')) {
-        downloadUrlObj.pathname = downloadUrlObj.pathname.slice(0, -1);
-      }
-
-      downloadUrlObj.pathname = `${downloadUrlObj.pathname}/${generationId}/content/video`;
-      const downloadUrl = downloadUrlObj.toString();
+      const downloadUrl = this.constructDownloadUrl(url, generationId);
 
       this.logger.log(`📥 Downloading video content...`);
 
@@ -93,6 +76,22 @@ export class VideoGenerationUseCase {
       this.logger.error('❌ Error en video generation', error.stack);
       throw new Error(`Error generando video: ${error.message || 'Unknown error'}`);
     }
+  }
+
+  private constructDownloadUrl(baseUrl: string, generationId: string): string {
+    const urlObj = new URL(baseUrl);
+    const jobsPath = '/jobs';
+
+    if (urlObj.pathname.endsWith(jobsPath)) {
+      urlObj.pathname = urlObj.pathname.slice(0, -jobsPath.length);
+    }
+
+    if (urlObj.pathname.endsWith('/')) {
+      urlObj.pathname = urlObj.pathname.slice(0, -1);
+    }
+
+    urlObj.pathname = `${urlObj.pathname}/${generationId}/content/video`;
+    return urlObj.toString();
   }
 
   private async pollVideoStatus(
@@ -118,16 +117,10 @@ export class VideoGenerationUseCase {
     while (status !== 'succeeded' && status !== 'failed' && attempts < maxAttempts) {
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
 
-      const response = await fetch(url, {
+      data = await this.httpService.get<any>(url, {
         headers: { 'api-key': apiKey }
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Polling Error: ${response.status} - ${errorText}`);
-      }
-
-      data = await response.json();
       status = data.status;
       attempts++;
     }
@@ -145,13 +138,13 @@ export class VideoGenerationUseCase {
       headers['api-key'] = apiKey;
     }
 
-    const response = await fetch(url, { headers });
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to download video: ${response.status} - ${errorText}`);
-    }
+    // Use arraybuffer response type for video
+    const arrayBuffer = await this.httpService.request<ArrayBuffer>(url, {
+      method: 'GET',
+      headers,
+      responseType: 'arraybuffer'
+    });
 
-    const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     const videosDir = path.join(process.cwd(), 'generated', 'videos');

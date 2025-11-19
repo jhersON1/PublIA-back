@@ -4,6 +4,8 @@ import { createHttpParseError, createHttpRequestError, createHttpTimeoutError } 
 export interface RequestOptions extends RequestInit {
   /** Tiempo máximo de espera en milisegundos (por defecto 15000 ms) */
   timeoutMs?: number;
+  /** Tipo de respuesta esperada (por defecto 'json' si es application/json, o 'text') */
+  responseType?: 'json' | 'text' | 'arraybuffer';
 }
 
 @Injectable()
@@ -22,10 +24,35 @@ export class HttpService {
 
     try {
       const res = await fetch(input, { ...init, signal: controller.signal });
+
+      if (!res.ok) {
+        // Intentar leer el error como texto o JSON
+        let errorBody: any;
+        try {
+          const errorText = await res.text();
+          try {
+            errorBody = JSON.parse(errorText);
+          } catch {
+            errorBody = errorText;
+          }
+        } catch {
+          errorBody = 'Unknown error';
+        }
+        throw createHttpRequestError(url, method, res.status, res.statusText, errorBody);
+      }
+
+      if (init?.responseType === 'arraybuffer') {
+        return (await res.arrayBuffer()) as unknown as T;
+      }
+
       const contentType = res.headers.get('content-type') || '';
       const isJson = contentType.includes('application/json');
-      const raw = await res.text();
 
+      if (init?.responseType === 'text') {
+        return (await res.text()) as unknown as T;
+      }
+
+      const raw = await res.text();
       let body: any = raw;
 
       if (isJson && raw) {
@@ -34,10 +61,6 @@ export class HttpService {
         } catch {
           throw createHttpParseError(url, method, raw);
         }
-      }
-
-      if (!res.ok) {
-        throw createHttpRequestError(url, method, res.status, res.statusText, body);
       }
 
       return body as T;
