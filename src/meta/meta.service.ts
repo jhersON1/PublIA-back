@@ -22,7 +22,7 @@ export class MetaService {
     private readonly facebook: FacebookClient,
     private readonly instagram: InstagramClient,
     private readonly whatsapp: WhatsAppClient,
-  ) {}
+  ) { }
 
   async postFacebookText(dto: FacebookPostTextDto): Promise<PostResult> {
     const userToken = this.config.get<string>('meta_user_access_token');
@@ -69,6 +69,23 @@ export class MetaService {
       templateName: dto.templateName,
       languageCode: dto.languageCode,
     });
+  }
+
+  /**
+   * Envía un mensaje de texto simple por WhatsApp
+   * @param to - Número de teléfono del destinatario
+   * @param text - Contenido del mensaje
+   * @param previewUrl - Si se debe mostrar preview de URLs
+   * @returns Resultado con el ID del mensaje enviado
+   */
+  async sendWhatsAppText(to: string, text: string, previewUrl: boolean): Promise<PostResult> {
+    const response = await this.whatsapp.sendTextMessage(to, text, previewUrl);
+    return {
+      ok: true,
+      platform: 'whatsapp',
+      id: response.messages[0]?.id,
+      status: 'published',
+    };
   }
 
   private async resolveSingleAccount(userToken: string): Promise<ManagedAccount> {
