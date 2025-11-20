@@ -18,7 +18,6 @@ export class GptService {
 
   constructor(
     private configService: ConfigService,
-    private cloudinaryService: CloudinaryService,
     private videoGenerationUseCase: VideoGenerationUseCase,
     private imageGenerationUseCase: ImageGenerationUseCase,
     private chatUseCase: ChatUseCase,
@@ -28,15 +27,9 @@ export class GptService {
       apiKey: this.configService.get<string>('OPENAI_API_KEY')
     });
 
-    const azureApiKey = this.configService.get<string>('AZURE_OPENAI_API_KEY');
-    const azureEndpoint = this.configService.get<string>('AZURE_OPENAI_ENDPOINT');
-
     // Configuración para Azure OpenAI
     this.azureOpenai = new OpenAI({
-      apiKey: azureApiKey,
-      baseURL: azureEndpoint,
-      defaultQuery: { 'api-version': '2024-05-01-preview' },
-      defaultHeaders: { 'api-key': azureApiKey }
+      apiKey: this.configService.get<string>('AZURE_OPENAI_API_KEY')
     });
   }
 

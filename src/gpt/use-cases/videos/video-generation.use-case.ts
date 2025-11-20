@@ -21,20 +21,19 @@ export class VideoGenerationUseCase {
   ): Promise<VideoGenerationResponse> {
     const { prompt, height, width, n_seconds, n_variants } = options;
     const apiKey = azureOpenai.apiKey;
-    const baseURL = azureOpenai.baseURL;
 
     try {
       this.logger.log('🎬 Iniciando generación de video con Azure OpenAI (Sora)...');
 
       // 1. Create Job
-      const createUrl = baseURL;
+      const createUrl = AzureVideoEndpoints.getAzurePostVideoUrl();
 
       const body = {
         model: GptModels.VideoGeneration,
         prompt: prompt,
-        height: height || 1080,
-        width: width || 1920,
-        n_seconds: n_seconds || 5,
+        height: height || 480,
+        width: width || 480,
+        n_seconds: n_seconds || 2,
         n_variants: n_variants || 1
       };
 
