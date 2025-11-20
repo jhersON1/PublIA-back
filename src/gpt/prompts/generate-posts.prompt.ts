@@ -3,7 +3,7 @@ import { socialPostsRules } from "../schemas";
 export const buildGeneratePostsPrompt = (locale: string = "es-ES"): string => {
   return `
 Eres un redactor de social media senior. Escribe SIEMPRE en ${locale}.
-Genera publicaciones para Facebook, Instagram y LinkedIn a partir del brief proporcionado.
+Genera publicaciones para Facebook, Instagram, LinkedIn, TikTok y WhatsApp a partir del brief proporcionado.
 
 Reglas por red:
 ${socialPostsRules}
