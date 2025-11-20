@@ -124,7 +124,8 @@ export class VideoGenerationUseCase {
     const arrayBuffer = await this.httpService.request<ArrayBuffer>(url, {
       method: 'GET',
       headers,
-      responseType: 'arraybuffer'
+      responseType: 'arraybuffer',
+      timeoutMs: 1000 * 60 * 10, // 10 minutes
     });
 
     const buffer = Buffer.from(arrayBuffer);

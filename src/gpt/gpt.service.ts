@@ -1,8 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ChatTextDto, GeneratePostsDto, GenerateImageDto, GenerateVideoDto } from './dto';
-import { chatUseCase, generatePostsUseCase, imageGenerationUseCase } from './use-cases';
+import { ChatUseCase } from './use-cases/chat/chat.use-case';
+import { GeneratePostsUseCase } from './use-cases/generate-posts/generate-posts.use-case';
 import { VideoGenerationUseCase } from './use-cases/videos/video-generation.use-case';
+import { ImageGenerationUseCase } from './use-cases/images/image-generation.use-case';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import OpenAI from 'openai';
 
@@ -18,6 +20,9 @@ export class GptService {
     private configService: ConfigService,
     private cloudinaryService: CloudinaryService,
     private videoGenerationUseCase: VideoGenerationUseCase,
+    private imageGenerationUseCase: ImageGenerationUseCase,
+    private chatUseCase: ChatUseCase,
+    private generatePostsUseCase: GeneratePostsUseCase,
   ) {
     this.openai = new OpenAI({
       apiKey: this.configService.get<string>('OPENAI_API_KEY')
@@ -36,23 +41,15 @@ export class GptService {
   }
 
   async chat(chatTextDto: ChatTextDto) {
-    return await chatUseCase(this.openai, {
-      prompt: chatTextDto.prompt,
-      previousResponseId: chatTextDto.previousResponseId
-    });
+    return await this.chatUseCase.execute(this.openai, chatTextDto);
   }
 
   async generatePosts(generatePostsDto: GeneratePostsDto) {
-    return await generatePostsUseCase(this.openai, {
-      prompt: generatePostsDto.prompt
-    });
+    return await this.generatePostsUseCase.execute(this.openai, generatePostsDto);
   }
 
   async generateImage(generateImageDto: GenerateImageDto) {
-    return await imageGenerationUseCase(this.openai, this.cloudinaryService, {
-      prompt: generateImageDto.prompt,
-      previousResponseId: generateImageDto.previousResponseId
-    });
+    return await this.imageGenerationUseCase.execute(this.openai, generateImageDto);
   }
 
   async generateVideo(generateVideoDto: GenerateVideoDto) {
