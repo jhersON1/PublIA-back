@@ -25,5 +25,17 @@ export type GeneratePostsResponse = {
       character_count: number;
       tone: "professional";
     };
+    tiktok: {
+      platform: "tiktok";
+      text: string;
+      hashtags: string[];
+      character_count: number;
+      suggested_video_prompt: string;
+    };
+    whatsapp: {
+      platform: "whatsapp";
+      text: string;
+      character_count: number;
+    };
   };
 };

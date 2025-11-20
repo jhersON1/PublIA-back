@@ -1,11 +1,16 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { v2 as Cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 
 @Injectable()
 export class CloudinaryService {
+  private readonly logger = new Logger(CloudinaryService.name);
+
   constructor(
     @Inject('CLOUDINARY') private readonly cloudinary: typeof Cloudinary,
-  ) {}
+  ) {
+    const config = this.cloudinary.config();
+    this.logger.log(`Cloudinary Config - Cloud Name: ${config.cloud_name}, API Key: ${config.api_key ? '***' + config.api_key.slice(-4) : 'MISSING'}`);
+  }
 
   async uploadImage(
     base64Image: string,
@@ -23,6 +28,10 @@ export class CloudinaryService {
 
       return result;
     } catch (error: any) {
+      this.logger.error(`Cloudinary Upload Error: ${error.message}`, error.stack);
+      if (error.error) {
+        this.logger.error(`Cloudinary Error Details: ${JSON.stringify(error.error)}`);
+      }
       throw new Error(`Error al subir imagen a Cloudinary: ${error.message}`);
     }
   }
@@ -31,6 +40,9 @@ export class CloudinaryService {
     file: Express.Multer.File,
     folder: string = 'images',
   ): Promise<UploadApiResponse> {
+    if (!file || !file.buffer) {
+      throw new Error('El archivo es inválido o no contiene datos (buffer)');
+    }
     try {
       return await new Promise<UploadApiResponse>((resolve, reject) => {
         this.cloudinary.uploader.upload_stream(

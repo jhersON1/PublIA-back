@@ -56,4 +56,28 @@ export class WhatsAppClient {
       MetaException.graphApi('WhatsApp Graph API error (send template)', e.body || e.message, e.status);
     }
   }
+
+  async sendTextMessage(to: string, text: string, previewUrl: boolean = false): Promise<SendMessageResponse> {
+    const url = getWhatsAppMessagesUrl(this.baseUrl, this.phoneNumberId);
+
+    const body = {
+      messaging_product: 'whatsapp',
+      to,
+      type: 'text',
+      text: {
+        preview_url: previewUrl,
+        body: text,
+      },
+    };
+
+    try {
+      return await this.http.postJson<SendMessageResponse>(url, body, {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      });
+    } catch (e: any) {
+      MetaException.graphApi('WhatsApp Graph API error (send text)', e.body || e.message, e.status);
+    }
+  }
 }

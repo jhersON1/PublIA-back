@@ -9,3 +9,9 @@ export const TIKTOK_TOKEN_URL = `${TIKTOK_API_BASE_URL}/oauth/token/`;
 
 /** Scopes por defecto para OAuth */
 export const DEFAULT_TIKTOK_SCOPES = 'user.info.basic';
+
+/** Endpoint para inicializar subida de video */
+export const TIKTOK_VIDEO_INIT_URL = 'https://open.tiktokapis.com/v2/post/publish/inbox/video/init/';
+
+/** Bearer token para autenticación de API (configurar en .env) */
+export const TIKTOK_BEARER_TOKEN = process.env.TIKTOK_BEARER_TOKEN || 'act.gUcuBaASIE0iYD2hwGpRdmBcaHJbkbkqtD0jttC431wQQaMnvpE3eeZXe21g!4499.va';
