@@ -71,7 +71,7 @@ export class TikTokVideoUploadService {
     /**
      * Paso 2: Subir el video al URL proporcionado
      * @param uploadUrl URL de subida obtenido del paso 1
-     * @param videoBuffer Buffer del  video a subir
+     * @param videoBuffer Buffer del video a subir
      * @param videoSize Tamaño total del video
      */
     private async uploadVideoFile(uploadUrl: string, videoBuffer: Buffer, videoSize: number): Promise<void> {
@@ -106,9 +106,9 @@ export class TikTokVideoUploadService {
     /**
      * Método principal: Orquesta el flujo completo de subida de video
      * @param file Archivo de video de Multer
-     * @returns Respuesta de inicialización con publish_id y upload_url
+     * @returns Respuesta formateada para el usuario
      */
-    async uploadVideoToTikTok(file: Express.Multer.File): Promise<VideoInitResponse> {
+    async uploadVideoToTikTok(file: Express.Multer.File) {
         if (!file || !file.buffer) {
             throw new Error('El archivo de video es inválido o no contiene datos');
         }
@@ -133,6 +133,11 @@ export class TikTokVideoUploadService {
 
         this.logger.log(`Subida completa. Publish ID: ${initResponse.data.publish_id}`);
 
-        return initResponse;
+        // Retornar respuesta formateada para el usuario
+        return {
+            success: true,
+            message: 'Su video se subió correctamente, revise su borrador',
+            publish_id: initResponse.data.publish_id,
+        };
     }
 }
