@@ -1,91 +1,145 @@
+import { Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
-import { GptExceptionHandler } from '../../exceptions/gpt.exceptions';
-import { VideoGenerationResponse, VideoGenerationUseCaseOptions } from '../shared';
+import { VideoGenerationResponse } from '../shared';
+import { GenerateVideoDto } from '../../dto/generate-video.dto';
 import { GptModels } from '../gpt-model/gpt-models';
-import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
 import * as fs from 'fs';
 import * as path from 'path';
+import { HttpService } from '../../../http/http.service';
+import { AzureVideoEndpoints } from '../gpt-model/gpt-endpoints';
+import { AzureVideoGenerationJob } from '../shared/azure-video-types';
 
-export const videoGenerationUseCase = async (
-  azureOpenai: OpenAI,
-  cloudinaryService: CloudinaryService,
-  { prompt, previousResponseId }: VideoGenerationUseCaseOptions
-): Promise<VideoGenerationResponse> => {
+@Injectable()
+export class VideoGenerationUseCase {
+  private readonly logger = new Logger(VideoGenerationUseCase.name);
 
-  try {
-    console.log('🎬 Iniciando generación de video con Azure OpenAI...');
-    console.log('📝 Prompt:', prompt);
+  constructor(private readonly httpService: HttpService) { }
 
-    // Iniciar generación del video - Azure usa la ruta directa sin /videos
-    let video = await azureOpenai.videos.create({
-      model: GptModels.VideoGeneration,  // En Azure esto puede ser ignorado si ya está en la URL
-      prompt: prompt,
+  async execute(
+    azureOpenai: OpenAI,
+    options: GenerateVideoDto
+  ): Promise<VideoGenerationResponse> {
+    const { prompt, height, width, n_seconds, n_variants } = options;
+    const apiKey = azureOpenai.apiKey;
+    const baseURL = azureOpenai.baseURL;
+
+    try {
+      this.logger.log('🎬 Iniciando generación de video con Azure OpenAI (Sora)...');
+
+      // 1. Create Job
+      const createUrl = baseURL;
+
+      const body = {
+        model: GptModels.VideoGeneration,
+        prompt: prompt,
+        height: height || 1080,
+        width: width || 1920,
+        n_seconds: n_seconds || 5,
+        n_variants: n_variants || 1
+      };
+
+      const initialData = await this.httpService.postJson<AzureVideoGenerationJob>(createUrl, body, {
+        headers: {
+          'api-key': apiKey
+        }
+      });
+
+      const jobId = initialData.id;
+      this.logger.log(`✅ Video generation job started: ${jobId}`);
+
+      // 2. Polling
+      const pollUrl = AzureVideoEndpoints.getJobStatusUrl(jobId);
+      const videoData = await this.pollVideoStatus(pollUrl, apiKey);
+
+      if (videoData.status === 'failed' || videoData.status === 'cancelled') {
+        throw new Error(`Video generation failed: ${JSON.stringify(videoData.error || videoData.status)}`);
+      }
+
+      // 3. Extract Generation ID
+      let generationId = null;
+      if (videoData.generations && videoData.generations.length > 0) {
+        generationId = videoData.generations[0].id;
+      }
+
+      if (!generationId) {
+        throw new Error(`No generation ID found in response. Response: ${JSON.stringify(videoData)}`);
+      }
+
+      // 4. Construct Download URL
+      const downloadUrl = AzureVideoEndpoints.getVideoDownloadUrl(generationId);
+
+      this.logger.log(`📥 Downloading video content from: ${downloadUrl}`);
+
+      // 5. Download Video
+      const fileName = await this.downloadAndSaveVideo(downloadUrl, apiKey);
+      const videoUrl = `${process.env.SERVER_URL}/gpt/video/${fileName}`;
+
+      return {
+        url: videoUrl,
+        responseId: jobId
+      };
+
+    } catch (error: any) {
+      this.logger.error('❌ Error en video generation', error.stack);
+      throw new Error(`Error generando video: ${error.message || 'Unknown error'}`);
+    }
+  }
+
+  private async pollVideoStatus(
+    url: string,
+    apiKey: string,
+    maxAttempts: number = 60,
+    intervalMs: number = 5000
+  ): Promise<AzureVideoGenerationJob> {
+    let status = 'running';
+    let data: AzureVideoGenerationJob | null = null;
+    let attempts = 0;
+
+    while (status !== 'succeeded' && status !== 'failed' && status !== 'cancelled' && attempts < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+
+      data = await this.httpService.get<AzureVideoGenerationJob>(url, {
+        headers: { 'api-key': apiKey }
+      });
+
+      status = data.status;
+      this.logger.debug(`Polling status: ${status}`);
+      attempts++;
+    }
+
+    if (!data || (status !== 'succeeded' && status !== 'failed' && status !== 'cancelled')) {
+      throw new Error(`Polling timed out without completion. Last status: ${status}`);
+    }
+
+    return data;
+  }
+
+  private async downloadAndSaveVideo(url: string, apiKey?: string): Promise<string> {
+    const headers: any = {};
+    if (apiKey) {
+      headers['api-key'] = apiKey;
+    }
+
+    // Use arraybuffer response type for video
+    const arrayBuffer = await this.httpService.request<ArrayBuffer>(url, {
+      method: 'GET',
+      headers,
+      responseType: 'arraybuffer',
+      timeoutMs: 1000 * 60 * 10, // 10 minutes
     });
 
-    console.log('✅ Video generation started: ', JSON.stringify(video, null, 2));
-    let progress = video.progress ?? 0;
+    const buffer = Buffer.from(arrayBuffer);
 
-    // Polling hasta que el video esté listo
-    while (video.status === 'in_progress' || video.status === 'queued') {
-      video = await azureOpenai.videos.retrieve(video.id);
-      progress = video.progress ?? 0;
-
-      // Display progress bar
-      const barLength = 30;
-      const filledLength = Math.floor((progress / 100) * barLength);
-      const bar = '='.repeat(filledLength) + '-'.repeat(barLength - filledLength);
-      const statusText = video.status === 'queued' ? 'Queued' : 'Processing';
-
-      process.stdout.write(`\r${statusText}: [${bar}] ${progress.toFixed(1)}%`);
-
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-
-    process.stdout.write('\n');
-
-    // Verificar si falló
-    if (video.status === 'failed') {
-      throw new Error('Video generation failed');
-    }
-
-    console.log('✅ Video generation completed: ', video);
-    console.log('📥 Downloading video content...');
-
-    // Descargar contenido del video
-    const content = await azureOpenai.videos.downloadContent(video.id);
-    const body = content.arrayBuffer();
-    const buffer = Buffer.from(await body);
-
-    // Asegurar que existe el directorio generated/videos
     const videosDir = path.join(process.cwd(), 'generated', 'videos');
     if (!fs.existsSync(videosDir)) {
       fs.mkdirSync(videosDir, { recursive: true });
     }
 
-    // Guardar video con nombre único
-    const fileName = `video-${video.id}-${Date.now()}.mp4`;
+    const fileName = `video-${Date.now()}.mp4`;
     const filePath = path.join(videosDir, fileName);
     fs.writeFileSync(filePath, buffer);
 
-    console.log(`💾 Wrote ${fileName}`);
-
-    // Construir URL del video
-    const videoUrl = `${process.env.SERVER_URL}/gpt/video/${fileName}`;
-
-    return {
-      url: videoUrl,
-      responseId: video.id
-    };
-  } catch (error: any) {
-    console.error('❌ Error en video generation:', error);
-    console.error('Error details:', {
-      message: error.message,
-      status: error.status,
-      type: error.type,
-      code: error.code,
-      response: error.response?.data || error.response
-    });
-
-    throw new Error(`Error generando video: ${error.message || 'Unknown error'}`);
+    this.logger.log(`💾 Wrote ${fileName}`);
+    return fileName;
   }
-};
+}

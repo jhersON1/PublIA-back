@@ -8,4 +8,16 @@ export class GenerateVideoDto {
   @IsString()
   @IsOptional()
   readonly previousResponseId?: string;
+
+  @IsOptional()
+  readonly height?: number;
+
+  @IsOptional()
+  readonly width?: number;
+
+  @IsOptional()
+  readonly n_seconds?: number;
+
+  @IsOptional()
+  readonly n_variants?: number;
 }
