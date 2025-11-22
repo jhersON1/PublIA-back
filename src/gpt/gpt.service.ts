@@ -46,7 +46,7 @@ export class GptService {
   }
 
   async generateVideo(generateVideoDto: GenerateVideoDto) {
-    return await this.videoGenerationUseCase.execute(this.azureOpenai, generateVideoDto);
+    return await this.videoGenerationUseCase.execute(generateVideoDto);
   }
 
 }
