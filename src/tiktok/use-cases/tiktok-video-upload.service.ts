@@ -48,6 +48,8 @@ export class TikTokVideoUploadService {
             },
         };
 
+        this.logger.log(`Sending init request to TikTok: ${JSON.stringify(requestBody)}`);
+
         try {
             const response = await this.httpService.postJson<VideoInitResponse>(
                 TIKTOK_VIDEO_INIT_URL,
@@ -63,8 +65,10 @@ export class TikTokVideoUploadService {
             this.logger.log(`Inicialización exitosa. Publish ID: ${response.data.publish_id}`);
             return response;
         } catch (error: any) {
-            this.logger.error(`Error al inicializar subida: ${error.message}`, error.stack);
-            throw new Error(`Error al inicializar subida de video a TikTok: ${error.message}`);
+            const status = error.status || error.response?.status;
+            const errorData = error.body || error.response?.data || error.message;
+            this.logger.error(`Error al inicializar subida. Status: ${status}. Data: ${JSON.stringify(errorData)}`, error.stack);
+            throw new Error(`Error al inicializar subida de video a TikTok: ${JSON.stringify(errorData)}`);
         }
     }
 

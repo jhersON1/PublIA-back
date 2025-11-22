@@ -5,6 +5,7 @@ import { ChatUseCase } from './use-cases/chat/chat.use-case';
 import { GeneratePostsUseCase } from './use-cases/generate-posts/generate-posts.use-case';
 import { VideoGenerationUseCase } from './use-cases/videos/video-generation.use-case';
 import { ImageGenerationUseCase } from './use-cases/images/image-generation.use-case';
+import { GoogleVideoGenerator } from './providers/google-video-generator.provider';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import OpenAI from 'openai';
 
@@ -22,6 +23,7 @@ export class GptService {
     private imageGenerationUseCase: ImageGenerationUseCase,
     private chatUseCase: ChatUseCase,
     private generatePostsUseCase: GeneratePostsUseCase,
+    private googleVideoGenerator: GoogleVideoGenerator,
   ) {
     this.openai = new OpenAI({
       apiKey: this.configService.get<string>('OPENAI_API_KEY')
@@ -42,11 +44,20 @@ export class GptService {
   }
 
   async generateImage(generateImageDto: GenerateImageDto) {
-    return await this.imageGenerationUseCase.execute(this.openai, generateImageDto);
+    return await this.imageGenerationUseCase.execute(generateImageDto);
   }
 
   async generateVideo(generateVideoDto: GenerateVideoDto) {
-    return await this.videoGenerationUseCase.execute(this.azureOpenai, generateVideoDto);
+    return await this.videoGenerationUseCase.execute(generateVideoDto);
+  }
+
+  // Google Veo
+  async startVeoGeneration(prompt: string) {
+    return await this.googleVideoGenerator.startVideoGeneration(prompt);
+  }
+
+  async checkVeoStatus(operationId: string) {
+    return await this.googleVideoGenerator.checkVideoStatus(operationId);
   }
 
 }

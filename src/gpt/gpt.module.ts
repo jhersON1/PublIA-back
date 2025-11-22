@@ -7,6 +7,9 @@ import { ImageGenerationUseCase } from './use-cases/images/image-generation.use-
 import { ChatUseCase } from './use-cases/chat/chat.use-case';
 import { GeneratePostsUseCase } from './use-cases/generate-posts/generate-posts.use-case';
 import { HttpModule } from '../http/http.module';
+import { GoogleImageGenerator } from './providers/google-image-generator.provider';
+import { AzureOpenAiVideoGenerator } from './providers/azure-openai-video-generator.provider';
+import { GoogleVideoGenerator } from './providers/google-video-generator.provider';
 
 @Module({
   imports: [CloudinaryModule, HttpModule],
@@ -16,7 +19,16 @@ import { HttpModule } from '../http/http.module';
     VideoGenerationUseCase,
     ImageGenerationUseCase,
     ChatUseCase,
-    GeneratePostsUseCase
+    GeneratePostsUseCase,
+    {
+      provide: 'ImageGenerator',
+      useClass: GoogleImageGenerator,
+    },
+    {
+      provide: 'VideoGenerator',
+      useClass: AzureOpenAiVideoGenerator,
+    },
+    GoogleVideoGenerator, // Register as a concrete provider too
   ],
 })
 export class GptModule { }

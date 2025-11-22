@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Res } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Res, Query } from '@nestjs/common';
 import { GptService } from './gpt.service';
 import { ChatTextDto, GeneratePostsDto, GenerateImageDto, GenerateVideoDto } from './dto';
 import type { Response } from 'express';
@@ -7,31 +7,31 @@ import * as path from 'path';
 
 @Controller('gpt')
 export class GptController {
-  constructor(private readonly gptService: GptService) {}
+  constructor(private readonly gptService: GptService) { }
 
   @Post('chat')
-  chat (
+  chat(
     @Body() chatTextDto: ChatTextDto
   ) {
     return this.gptService.chat(chatTextDto);
   }
 
   @Post('generate-posts')
-  generatePosts (
+  generatePosts(
     @Body() generatePostsDto: GeneratePostsDto
   ) {
     return this.gptService.generatePosts(generatePostsDto);
   }
 
   @Post('generate-image')
-  generateImage (
+  generateImage(
     @Body() generateImageDto: GenerateImageDto
   ) {
     return this.gptService.generateImage(generateImageDto);
   }
 
   @Post('generate-video')
-  generateVideo (
+  generateVideo(
     @Body() generateVideoDto: GenerateVideoDto
   ) {
     return this.gptService.generateVideo(generateVideoDto);
@@ -44,6 +44,21 @@ export class GptController {
   ) {
     const filePath = path.join(process.cwd(), 'generated', 'videos', filename);
     return res.sendFile(filePath);
+  }
+
+  // Google Veo Endpoints
+  @Post('veo/generate')
+  async startVeoGeneration(@Body('prompt') prompt: string) {
+    const operationId = await this.gptService.startVeoGeneration(prompt);
+    return {
+      message: "Generación iniciada. Guarda este ID para consultar.",
+      operationId: operationId
+    };
+  }
+
+  @Get('veo/status')
+  async checkVeoStatus(@Query('id') operationId: string) {
+    return await this.gptService.checkVeoStatus(operationId);
   }
 
 }
