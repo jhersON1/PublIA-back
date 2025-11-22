@@ -42,7 +42,7 @@ export class GptService {
   }
 
   async generateImage(generateImageDto: GenerateImageDto) {
-    return await this.imageGenerationUseCase.execute(this.openai, generateImageDto);
+    return await this.imageGenerationUseCase.execute(generateImageDto);
   }
 
   async generateVideo(generateVideoDto: GenerateVideoDto) {

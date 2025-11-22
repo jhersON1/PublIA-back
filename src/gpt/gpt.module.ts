@@ -7,6 +7,7 @@ import { ImageGenerationUseCase } from './use-cases/images/image-generation.use-
 import { ChatUseCase } from './use-cases/chat/chat.use-case';
 import { GeneratePostsUseCase } from './use-cases/generate-posts/generate-posts.use-case';
 import { HttpModule } from '../http/http.module';
+import { OpenAiImageGenerator } from './providers/openai-image-generator.provider';
 
 @Module({
   imports: [CloudinaryModule, HttpModule],
@@ -16,7 +17,11 @@ import { HttpModule } from '../http/http.module';
     VideoGenerationUseCase,
     ImageGenerationUseCase,
     ChatUseCase,
-    GeneratePostsUseCase
+    GeneratePostsUseCase,
+    {
+      provide: 'ImageGenerator',
+      useClass: OpenAiImageGenerator,
+    },
   ],
 })
 export class GptModule { }
