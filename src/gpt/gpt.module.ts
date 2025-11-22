@@ -9,6 +9,7 @@ import { GeneratePostsUseCase } from './use-cases/generate-posts/generate-posts.
 import { HttpModule } from '../http/http.module';
 import { GoogleImageGenerator } from './providers/google-image-generator.provider';
 import { AzureOpenAiVideoGenerator } from './providers/azure-openai-video-generator.provider';
+import { GoogleVideoGenerator } from './providers/google-video-generator.provider';
 
 @Module({
   imports: [CloudinaryModule, HttpModule],
@@ -27,6 +28,7 @@ import { AzureOpenAiVideoGenerator } from './providers/azure-openai-video-genera
       provide: 'VideoGenerator',
       useClass: AzureOpenAiVideoGenerator,
     },
+    GoogleVideoGenerator, // Register as a concrete provider too
   ],
 })
 export class GptModule { }
