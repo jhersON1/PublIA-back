@@ -30,7 +30,7 @@ export class ImageGenerationUseCase {
     } catch (error) {
       this.logger.error('Error generating image', error);
       GptExceptionHandler.handleJsonParseError(error as Error);
-      throw error;
+
     }
   }
 }
