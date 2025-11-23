@@ -144,4 +144,49 @@ export class TikTokVideoUploadService {
             publish_id: initResponse.data.publish_id,
         };
     }
+
+    /**
+     * Publica un video a TikTok desde una URL (para videos en Cloudinary)
+     * @param videoUrl URL del video (ej: URL de Cloudinary)
+     * @returns Respuesta formateada para el usuario
+     */
+    async uploadVideoFromUrl(videoUrl: string) {
+        this.logger.log(`Descargando video desde URL: ${videoUrl}`);
+
+        try {
+            // 1. Descargar el video desde la URL
+            const response = await fetch(videoUrl);
+
+            if (!response.ok) {
+                throw new Error(`Error al descargar el video: HTTP ${response.status}`);
+            }
+
+            // 2. Convertir la respuesta a ArrayBuffer y luego a Buffer
+            const arrayBuffer = await response.arrayBuffer();
+            const videoBuffer = Buffer.from(arrayBuffer);
+
+            this.logger.log(`Video descargado. Tamaño: ${videoBuffer.length} bytes`);
+
+            // 3. Crear un objeto que simule Express.Multer.File
+            const mockFile: Express.Multer.File = {
+                buffer: videoBuffer,
+                size: videoBuffer.length,
+                originalname: `video-from-url-${Date.now()}.mp4`,
+                mimetype: 'video/mp4',
+                fieldname: 'file',
+                encoding: '7bit',
+                stream: null as any,  // Not used in our upload process
+                destination: '',
+                filename: '',
+                path: '',
+            };
+
+            // 4. Usar el método existente para subir a TikTok
+            return await this.uploadVideoToTikTok(mockFile);
+
+        } catch (error: any) {
+            this.logger.error(`Error al publicar video desde URL: ${error.message}`, error.stack);
+            throw new Error(`Error al publicar video desde URL: ${error.message}`);
+        }
+    }
 }

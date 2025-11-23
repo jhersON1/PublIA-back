@@ -1,4 +1,4 @@
-import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException, Body } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TiktokService } from './tiktok.service';
 import { TikTokVideoUploadService } from './use-cases/tiktok-video-upload.service';
@@ -23,5 +23,19 @@ export class TiktokController {
     }
 
     return this.videoUploadService.uploadVideoToTikTok(file);
+  }
+
+  /**
+   * Endpoint para publicar un video a TikTok desde una URL (ej: Cloudinary)
+   * Este endpoint descarga el video de la URL, lo convierte a Buffer y lo sube a TikTok
+   * @param body Objeto con la URL del video
+   */
+  @Post('publish-tiktok-from-url')
+  async publishVideoFromUrl(@Body('video_url') videoUrl: string) {
+    if (!videoUrl) {
+      throw new BadRequestException('No se ha proporcionado la URL del video');
+    }
+
+    return this.videoUploadService.uploadVideoFromUrl(videoUrl);
   }
 }
