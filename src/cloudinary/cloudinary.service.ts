@@ -60,4 +60,53 @@ export class CloudinaryService {
       throw new Error(`Error al subir archivo a Cloudinary: ${error.message}`);
     }
   }
+
+  /**
+   * Sube un video a Cloudinary desde un Buffer
+   * @param videoBuffer Buffer del video
+   * @param folder Carpeta destino en Cloudinary
+   * @param filename Nombre opcional del archivo
+   * @returns Respuesta de Cloudinary con la URL del video
+   */
+  async uploadVideo(
+    videoBuffer: Buffer,
+    folder: string = 'videos',
+    filename?: string,
+  ): Promise<UploadApiResponse> {
+    if (!videoBuffer) {
+      throw new Error('El buffer del video es inválido');
+    }
+
+    this.logger.log(`Subiendo video a Cloudinary. Tamaño: ${videoBuffer.length} bytes`);
+
+    try {
+      return await new Promise<UploadApiResponse>((resolve, reject) => {
+        const uploadOptions: any = {
+          folder,
+          resource_type: 'video',
+          format: 'mp4',
+        };
+
+        // Si se proporciona un nombre, usarlo como public_id
+        if (filename) {
+          uploadOptions.public_id = filename;
+        }
+
+        this.cloudinary.uploader.upload_stream(
+          uploadOptions,
+          (error: UploadApiErrorResponse, result: UploadApiResponse) => {
+            if (error) {
+              this.logger.error(`Error en Cloudinary: ${JSON.stringify(error)}`);
+              return reject(error);
+            }
+            this.logger.log(`Video subido exitosamente. URL: ${result.secure_url}`);
+            resolve(result);
+          },
+        ).end(videoBuffer);
+      });
+    } catch (error: any) {
+      this.logger.error(`Error al subir video a Cloudinary: ${error.message}`, error.stack);
+      throw new Error(`Error al subir video a Cloudinary: ${error.message}`);
+    }
+  }
 }
