@@ -9,6 +9,7 @@ import { MetaModule } from './meta/meta.module';
 import { HttpModule } from './http/http.module';
 import { LinkedinModule } from './linkedin/linkedin.module';
 import { WinstonLogsModule } from './winston-logs/winston-logs.module';
+import { WhatsappModule } from './bot/whatsapp/whatsapp.module';
 
 
 @Module({
@@ -20,7 +21,8 @@ import { WinstonLogsModule } from './winston-logs/winston-logs.module';
     MetaModule,
     HttpModule,
     LinkedinModule,
-    WinstonLogsModule
+    WinstonLogsModule,
+    WhatsappModule
   ],
   controllers: [AppController],
   providers: [AppService],
