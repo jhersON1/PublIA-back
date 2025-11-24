@@ -14,4 +14,4 @@ export const DEFAULT_TIKTOK_SCOPES = 'user.info.basic';
 export const TIKTOK_VIDEO_INIT_URL = 'https://open.tiktokapis.com/v2/post/publish/inbox/video/init/';
 
 /** Bearer token para autenticación de API (configurar en .env) */
-export const TIKTOK_BEARER_TOKEN = process.env.TIKTOK_BEARER_TOKEN || 'act.gUcuBaASIE0iYD2hwGpRdmBcaHJbkbkqtD0jttC431wQQaMnvpE3eeZXe21g!4499.va';
+export const TIKTOK_BEARER_TOKEN = process.env.TIKTOK_BEARER_TOKEN || 'act.ShlYYYoinpHsZvckzZGWu3NNflUcMEjzE2NBPE988wCg6RbGaWfXwYnMy9Qe!4508.va';

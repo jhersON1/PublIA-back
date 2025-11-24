@@ -8,6 +8,9 @@ interface Options {
   caption?: string;
 }
 
+// Helper function to add delay
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export const postInstagramImageUseCase = async (
   instagram: InstagramClient,
   { igUserId, accessToken, imageUrl, caption }: Options,
@@ -15,10 +18,18 @@ export const postInstagramImageUseCase = async (
   // 1) Crear container de imagen
   const created = await instagram.createImageMedia({ igUserId, accessToken, imageUrl, caption });
 
-  // 2) Publicar el container para crear el media
-  const published = await instagram.publishMedia({ igUserId, accessToken, creationId: created.id });
+  console.log(`✅ Container creado con ID: ${created.id}`);
 
-  // 3) Obtener permalink (best-effort)
+  // 2) Esperar 4 segundos para que Instagram procese la imagen
+  console.log('⏳ Esperando 4 segundos para que Instagram procese la imagen...');
+  await sleep(4000);
+
+  // 3) Publicar el container para crear el media
+  console.log('📤 Publicando el container...');
+  const published = await instagram.publishMedia({ igUserId, accessToken, creationId: created.id });
+  console.log(`✅ Publicado exitosamente con ID: ${published.id}`);
+
+  // 4) Obtener permalink (best-effort)
   let permalink: string | undefined;
   try {
     const meta = await instagram.getMediaPermalink({ mediaId: published.id, accessToken });
@@ -36,3 +47,4 @@ export const postInstagramImageUseCase = async (
   };
   return result;
 };
+
