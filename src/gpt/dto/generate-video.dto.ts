@@ -20,4 +20,8 @@ export class GenerateVideoDto {
 
   @IsOptional()
   readonly n_variants?: number;
+
+  @IsString()
+  @IsOptional()
+  readonly chatId?: string;
 }

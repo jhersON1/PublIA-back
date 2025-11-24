@@ -2,33 +2,47 @@ import { Module } from '@nestjs/common';
 import { GptService } from './gpt.service';
 import { GptController } from './gpt.controller';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
-import { VideoGenerationUseCase } from './use-cases/videos/video-generation.use-case';
-import { ImageGenerationUseCase } from './use-cases/images/image-generation.use-case';
-import { ChatUseCase } from './use-cases/chat/chat.use-case';
-import { GeneratePostsUseCase } from './use-cases/generate-posts/generate-posts.use-case';
+import { TiktokModule } from '../tiktok/tiktok.module';
+import { MetaModule } from '../meta/meta.module';
 import { HttpModule } from '../http/http.module';
-import { GoogleImageGenerator } from './providers/google-image-generator.provider';
-import { AzureOpenAiVideoGenerator } from './providers/azure-openai-video-generator.provider';
+import { ChatModule } from '../chat/chat.module';
+
+// Use Cases
+import { ImageGenerationUseCase } from './use-cases/images/image-generation.use-case';
+import { GeneratePostsUseCase } from './use-cases/generate-posts/generate-posts.use-case';
+import { VideoGenerationUseCase } from './use-cases/videos/video-generation.use-case';
+import { ChatUseCase } from './use-cases/chat/chat.use-case';
 import { GoogleVideoGenerator } from './providers/google-video-generator.provider';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [CloudinaryModule, HttpModule],
   controllers: [GptController],
   providers: [
     GptService,
-    VideoGenerationUseCase,
     ImageGenerationUseCase,
-    ChatUseCase,
     GeneratePostsUseCase,
-    {
-      provide: 'ImageGenerator',
-      useClass: GoogleImageGenerator,
-    },
+    VideoGenerationUseCase,
+    ChatUseCase,
+    GoogleVideoGenerator,
     {
       provide: 'VideoGenerator',
-      useClass: AzureOpenAiVideoGenerator,
+      useExisting: GoogleVideoGenerator
     },
-    GoogleVideoGenerator, // Register as a concrete provider too
+    {
+      provide: 'ImageGenerator',
+      useValue: {
+        generateImage: async () => { throw new Error('ImageGenerator not implemented') }
+      }
+    }
   ],
+  imports: [
+    CloudinaryModule,
+    TiktokModule,
+    MetaModule,
+    HttpModule,
+    ConfigModule,
+    ChatModule
+  ],
+  exports: [GptService]
 })
 export class GptModule { }

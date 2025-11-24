@@ -8,4 +8,8 @@ export class ChatTextDto {
   @IsString()
   @IsOptional()
   readonly previousResponseId?: string;
+
+  @IsString()
+  @IsOptional()
+  readonly chatId?: string;
 }

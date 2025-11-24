@@ -4,6 +4,7 @@ import { ImageGenerationResponse } from '../shared';
 import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
 import { GenerateImageDto } from '../../dto';
 import type { ImageGenerator } from '../../interfaces/image-generator.interface';
+import { ChatService } from '../../../chat/chat.service';
 
 @Injectable()
 export class ImageGenerationUseCase {
@@ -12,6 +13,7 @@ export class ImageGenerationUseCase {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
     @Inject('ImageGenerator') private readonly imageGenerator: ImageGenerator,
+    private readonly chatService: ChatService,
   ) { }
 
   async execute(
@@ -22,6 +24,16 @@ export class ImageGenerationUseCase {
 
       // Subir imagen a Cloudinary
       const cloudinaryResult = await this.cloudinaryService.uploadImage(imageBase64, 'generated-images');
+
+      if (options.chatId) {
+        await this.chatService.addMessage({
+          chatId: options.chatId,
+          sender: 'ai',
+          content: 'Imagen generada',
+          type: 'image',
+          mediaUrl: cloudinaryResult.secure_url
+        });
+      }
 
       return {
         url: cloudinaryResult.secure_url,

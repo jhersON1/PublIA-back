@@ -12,6 +12,7 @@ import { WinstonLogsModule } from './winston-logs/winston-logs.module';
 import { WhatsappModule } from './bot/whatsapp/whatsapp.module';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
+import { ChatModule } from './chat/chat.module';
 
 
 @Module({
@@ -26,7 +27,8 @@ import { AuthModule } from './auth/auth.module';
     WinstonLogsModule,
     WhatsappModule,
     DatabaseModule,
-    AuthModule
+    AuthModule,
+    ChatModule
   ],
   controllers: [AppController],
   providers: [AppService],
