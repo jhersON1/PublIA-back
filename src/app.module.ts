@@ -10,6 +10,8 @@ import { HttpModule } from './http/http.module';
 import { LinkedinModule } from './linkedin/linkedin.module';
 import { WinstonLogsModule } from './winston-logs/winston-logs.module';
 import { WhatsappModule } from './bot/whatsapp/whatsapp.module';
+import { DatabaseModule } from './database/database.module';
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
@@ -22,7 +24,9 @@ import { WhatsappModule } from './bot/whatsapp/whatsapp.module';
     HttpModule,
     LinkedinModule,
     WinstonLogsModule,
-    WhatsappModule
+    WhatsappModule,
+    DatabaseModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],
