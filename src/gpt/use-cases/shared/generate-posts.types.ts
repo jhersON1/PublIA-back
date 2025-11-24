@@ -1,6 +1,7 @@
 export interface GeneratePostsUseCaseOptions {
   prompt: string;
   locale?: string;
+  chatId?: string;
 }
 
 export type GeneratePostsResponse = {

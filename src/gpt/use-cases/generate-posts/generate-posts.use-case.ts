@@ -9,16 +9,19 @@ import {
   GeneratePostsUseCaseOptions
 } from "../shared";
 import { GptModels } from "../gpt-model/gpt-models";
+import { ChatService } from '../../../chat/chat.service';
 
 @Injectable()
 export class GeneratePostsUseCase {
   private readonly logger = new Logger(GeneratePostsUseCase.name);
 
+  constructor(private readonly chatService: ChatService) { }
+
   async execute(
     openai: OpenAI,
     options: GeneratePostsUseCaseOptions
   ): Promise<GeneratePostsResponse> {
-    const { prompt, locale = "es-ES" } = options;
+    const { prompt, locale = "es-ES", chatId } = options;
 
     try {
       const response = await openai.responses.create({
@@ -41,7 +44,19 @@ export class GeneratePostsUseCase {
         "La respuesta de OpenAI llegó vacía (sin contenido)."
       );
 
-      return JSON.parse(rawJson) as GeneratePostsResponse;
+      const result = JSON.parse(rawJson) as GeneratePostsResponse;
+
+      if (chatId) {
+        await this.chatService.addMessage({
+          chatId,
+          sender: 'ai',
+          content: JSON.stringify(result),
+          type: 'text',
+          metadata: { isPosts: true }
+        });
+      }
+
+      return result;
     } catch (error) {
       this.logger.error('Error in generate posts use case', error);
       GptExceptionHandler.handleJsonParseError(error as Error);
