@@ -49,7 +49,7 @@ export class GeneratePostsUseCase {
       if (chatId) {
         await this.chatService.addMessage({
           chatId,
-          sender: 'ai',
+          sender: 'ai-posts',
           content: JSON.stringify(result),
           type: 'text',
           metadata: { isPosts: true }
