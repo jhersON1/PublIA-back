@@ -17,13 +17,16 @@ import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
             }),
           ),
         }),
-        new winston.transports.File({
-          filename: 'logs/app.log',
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json(),
-          ),
-        }),
+        // Solo guardar en archivo si NO estamos en Vercel
+        ...(process.env.VERCEL ? [] : [
+          new winston.transports.File({
+            filename: 'logs/app.log',
+            format: winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.json(),
+            ),
+          }),
+        ]),
       ],
     }),
   ],
