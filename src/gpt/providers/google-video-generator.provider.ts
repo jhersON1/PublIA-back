@@ -90,7 +90,7 @@ export class GoogleVideoGenerator implements VideoGenerator {
             parameters: {
                 aspectRatio: "16:9",
                 sampleCount: 1,
-                durationSeconds: 4,  // Debe ser número, no string
+                durationSeconds: 4,
                 personGeneration: "allow_all",
                 resolution: "720p"
             }
