@@ -24,4 +24,8 @@ export class GenerateVideoDto {
   @IsString()
   @IsOptional()
   readonly chatId?: string;
+
+  @IsString()
+  @IsOptional()
+  readonly messageId?: string;
 }

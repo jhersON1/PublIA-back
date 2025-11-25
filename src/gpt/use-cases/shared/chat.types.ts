@@ -8,4 +8,5 @@ export type ChatResponse = {
   message: string;
   context: string;
   responseId: string;
+  messageId?: string;
 };

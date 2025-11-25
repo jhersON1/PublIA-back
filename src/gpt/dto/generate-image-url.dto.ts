@@ -8,4 +8,12 @@ export class GenerateImageUrlDto {
   @IsString()
   @IsOptional()
   readonly previousResponseId?: string;
+
+  @IsString()
+  @IsOptional()
+  readonly chatId?: string;
+
+  @IsString()
+  @IsOptional()
+  readonly messageId?: string;
 }

@@ -47,13 +47,14 @@ export class GeneratePostsUseCase {
       const result = JSON.parse(rawJson) as GeneratePostsResponse;
 
       if (chatId) {
-        await this.chatService.addMessage({
+        const savedMessage = await this.chatService.addMessage({
           chatId,
           sender: 'ai-posts',
           content: JSON.stringify(result),
           type: 'text',
           metadata: { isPosts: true }
         });
+        result.messageId = savedMessage._id.toString();
       }
 
       return result;

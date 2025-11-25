@@ -18,6 +18,7 @@ export type GeneratePostsResponse = {
       hashtags: string[];
       character_count: number;
       suggested_image_prompt: string;
+      mediaUrl?: string;
     };
     linkedin: {
       platform: "linkedin";
@@ -32,6 +33,7 @@ export type GeneratePostsResponse = {
       hashtags: string[];
       character_count: number;
       suggested_video_prompt: string;
+      mediaUrl?: string;
     };
     whatsapp: {
       platform: "whatsapp";
@@ -39,4 +41,5 @@ export type GeneratePostsResponse = {
       character_count: number;
     };
   };
+  messageId?: string;
 };

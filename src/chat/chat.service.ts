@@ -57,4 +57,25 @@ export class ChatService {
         }
         return updatedChat;
     }
+
+    async updateMessageMedia(messageId: string, platform: 'instagram' | 'tiktok', mediaUrl: string): Promise<Message> {
+        const message = await this.messageModel.findById(messageId);
+        if (!message) {
+            throw new NotFoundException(`Message with ID ${messageId} not found`);
+        }
+
+        try {
+            const contentObj = JSON.parse(message.content);
+            if (contentObj.networks && contentObj.networks[platform]) {
+                contentObj.networks[platform].mediaUrl = mediaUrl;
+                message.content = JSON.stringify(contentObj);
+                return await message.save();
+            } else {
+                throw new NotFoundException(`Platform ${platform} not found in message content`);
+            }
+        } catch (error) {
+            if (error instanceof NotFoundException) throw error;
+            throw new Error('Failed to parse message content or update media');
+        }
+    }
 }
