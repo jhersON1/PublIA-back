@@ -18,17 +18,26 @@ export class GoogleImageGenerator implements ImageGenerator {
     private modelId = 'imagen-4.0-generate-001';
 
     constructor(private configService: ConfigService) {
-        // 1. Ruta al archivo JSON (tu llave)
-        // Asegúrate de que el archivo se llame así y esté en la raíz del proyecto
-        // User previously said 'credenciales-google-ai.json', but snippet says 'credenciales.json'.
-        // I will use 'credenciales-google-ai.json' to match the file we know exists from previous steps.
-        const keyFilename = path.join(process.cwd(), 'credenciales-google-ai.json');
-
-        // 2. Configuramos el cliente
-        const clientOptions = {
+        // 1. Configuramos el cliente
+        const clientOptions: any = {
             apiEndpoint: 'us-central1-aiplatform.googleapis.com',
-            keyFilename: keyFilename, // <--- Aquí le pasamos el JSON directo
         };
+
+        // Verificamos si existe la variable de entorno con el JSON completo (para Vercel)
+        if (process.env.GOOGLE_CREDENTIALS_JSON) {
+            try {
+                const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+                clientOptions.credentials = credentials;
+                this.logger.log('🔐 Usando credenciales desde variable de entorno GOOGLE_CREDENTIALS_JSON');
+            } catch (error) {
+                this.logger.error('❌ Error al parsear GOOGLE_CREDENTIALS_JSON', error);
+            }
+        } else {
+            // Fallback: Usar archivo local (para desarrollo)
+            const keyFilename = path.join(process.cwd(), 'credenciales-google-ai.json');
+            clientOptions.keyFilename = keyFilename;
+            this.logger.log(`📂 Usando credenciales desde archivo local: ${keyFilename}`);
+        }
 
         this.predictionServiceClient = new PredictionServiceClient(clientOptions);
     }
