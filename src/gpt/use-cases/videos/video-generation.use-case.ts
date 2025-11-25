@@ -13,7 +13,9 @@ export class VideoGenerationUseCase {
   async execute(options: GenerateVideoDto) {
     const videoResponse = await this.videoGenerator.generateVideo(options);
 
-    if (options.chatId) {
+    if (options.messageId) {
+      await this.chatService.updateMessageMedia(options.messageId, 'tiktok', videoResponse.url);
+    } else if (options.chatId) {
       await this.chatService.addMessage({
         chatId: options.chatId,
         sender: 'ai',

@@ -6,7 +6,7 @@ export class Message extends Document {
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Chat', required: true })
     chatId: string;
 
-    @Prop({ required: true, enum: ['user', 'ai'] })
+    @Prop({ required: true, enum: ['user', 'ai', 'ai-posts'] })
     sender: string;
 
     @Prop({ required: true })

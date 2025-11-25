@@ -5,6 +5,7 @@ import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
 import { GenerateImageDto } from '../../dto';
 import type { ImageGenerator } from '../../interfaces/image-generator.interface';
 import { ChatService } from '../../../chat/chat.service';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class ImageGenerationUseCase {
@@ -25,7 +26,9 @@ export class ImageGenerationUseCase {
       // Subir imagen a Cloudinary
       const cloudinaryResult = await this.cloudinaryService.uploadImage(imageBase64, 'generated-images');
 
-      if (options.chatId) {
+      if (options.messageId) {
+        await this.chatService.updateMessageMedia(options.messageId, 'instagram', cloudinaryResult.secure_url);
+      } else if (options.chatId) {
         await this.chatService.addMessage({
           chatId: options.chatId,
           sender: 'ai',

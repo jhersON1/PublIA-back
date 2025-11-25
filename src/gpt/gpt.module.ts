@@ -13,6 +13,7 @@ import { GeneratePostsUseCase } from './use-cases/generate-posts/generate-posts.
 import { VideoGenerationUseCase } from './use-cases/videos/video-generation.use-case';
 import { ChatUseCase } from './use-cases/chat/chat.use-case';
 import { GoogleVideoGenerator } from './providers/google-video-generator.provider';
+import { GoogleImageGenerator } from './providers/google-image-generator.provider';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -24,15 +25,14 @@ import { ConfigModule } from '@nestjs/config';
     VideoGenerationUseCase,
     ChatUseCase,
     GoogleVideoGenerator,
+    GoogleImageGenerator,
     {
       provide: 'VideoGenerator',
       useExisting: GoogleVideoGenerator
     },
     {
       provide: 'ImageGenerator',
-      useValue: {
-        generateImage: async () => { throw new Error('ImageGenerator not implemented') }
-      }
+      useExisting: GoogleImageGenerator
     }
   ],
   imports: [

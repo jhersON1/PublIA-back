@@ -51,20 +51,24 @@ export class ChatUseCase {
       const content = extractOutputText(response);
       const parsed = JSON.parse(content);
 
+      let messageId: string | undefined;
+
       if (chatId) {
-        await this.chatService.addMessage({
+        const savedMessage = await this.chatService.addMessage({
           chatId,
           sender: 'ai',
           content: parsed.message,
           type: 'text',
           metadata: { context: parsed.context }
         });
+        messageId = savedMessage._id.toString();
       }
 
       return {
         message: parsed.message,
         context: parsed.context,
-        responseId: response.id
+        responseId: response.id,
+        messageId
       };
     } catch (error) {
       this.logger.error('Error in chat use case', error);

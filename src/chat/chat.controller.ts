@@ -3,6 +3,7 @@ import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
+import { UpdateMessageDto } from './dto/update-message.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -36,5 +37,17 @@ export class ChatController {
   @Patch(':id')
   updateChat(@Param('id') id: string, @Body() updateChatDto: UpdateChatDto) {
     return this.chatService.updateChat(id, updateChatDto);
+  }
+
+  @Patch('message/:messageId')
+  updateMessageMedia(
+    @Param('messageId') messageId: string,
+    @Body() updateMessageDto: UpdateMessageDto
+  ) {
+    return this.chatService.updateMessageMedia(
+      messageId,
+      updateMessageDto.platform,
+      updateMessageDto.mediaUrl
+    );
   }
 }
