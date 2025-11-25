@@ -22,13 +22,27 @@ export class GoogleVideoGenerator implements VideoGenerator {
         private configService: ConfigService,
         private cloudinaryService: CloudinaryService,
     ) {
-        const keyFilename = path.join(process.cwd(), 'credenciales-google-ai.json');
+        const options: any = {
+            scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+        };
+
+        // Verificamos si existe la variable de entorno con el JSON completo (para Vercel)
+        if (process.env.GOOGLE_CREDENTIALS_JSON) {
+            try {
+                options.credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+                this.logger.log('🔐 Usando credenciales desde variable de entorno GOOGLE_CREDENTIALS_JSON');
+            } catch (error) {
+                this.logger.error('❌ Error al parsear GOOGLE_CREDENTIALS_JSON', error);
+            }
+        } else {
+            // Fallback: Usar archivo local (para desarrollo)
+            const keyFilename = path.join(process.cwd(), 'credenciales-google-ai.json');
+            options.keyFilename = keyFilename;
+            this.logger.log(`📂 Usando credenciales desde archivo local: ${keyFilename}`);
+        }
 
         // 1. Configuramos la autenticación manual
-        this.auth = new GoogleAuth({
-            keyFilename: keyFilename,
-            scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-        });
+        this.auth = new GoogleAuth(options);
     }
 
     async generateVideo(options: GenerateVideoDto): Promise<VideoGenerationResponse> {
@@ -161,7 +175,7 @@ export class GoogleVideoGenerator implements VideoGenerator {
 
             // Validación de seguridad: ¿Realmente hay videos?
             if (!videos || videos.length === 0) {
-                
+
                 this.logger.warn('La operación terminó pero no hay videos en el array.');
                 return {
                     status: 'FAILED',
